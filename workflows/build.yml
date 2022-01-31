@@ -1,0 +1,22 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run bash-environment-manager      
+      run: |
+        curl https://raw.githubusercontent.com/terminal-labs/bash-environment-shelf/master/prepscripts/mock_vagrant.sh --output .repo/mock_vagrant.sh
+        curl https://raw.githubusercontent.com/terminal-labs/bash-environment-shelf/master/prepscripts/download_bash_environment_manager.sh --output .repo/download_bash_environment_manager.sh
+        sudo bash .repo/mock_vagrant.sh
+        sudo bash .repo/download_bash_environment_manager.sh
+        sudo -H -u vagrant bash -c 'export HOME=/home/vagrant; cd /vagrant; sudo make conda'

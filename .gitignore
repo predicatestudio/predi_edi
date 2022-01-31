@@ -1,3 +1,11 @@
-*/__pycache__
-.pytest_cache
+.tmp/
+.vagrant/
+Vagrantfile
+ubuntu-bionic-18.04-cloudimg-console.log
 
+activate.sh
+
+**/__pycache__/
+**/.coverage
+**.egg-info/
+**/framework/

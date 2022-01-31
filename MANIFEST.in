@@ -1,0 +1,3 @@
+include src/predi/setup.cfg
+include src/predi/.coveragerc
+recursive-include src/predi/payload *
