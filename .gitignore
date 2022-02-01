@@ -1,5 +1,6 @@
 .tmp/
 .vagrant/
+*.vscode/
 Vagrantfile
 ubuntu-bionic-18.04-cloudimg-console.log
 
