@@ -8,7 +8,7 @@ import dataclasses
 import enum
 from pathlib import Path
 from pprint import pprint
-from .edi import EDI_Decoder, EDI_Document, guess_edi_standard, EDI_Encoder, X12_Document
+from .edi import EDI_Decoder, EDI_Document, guess_edi_standard, EDI_Encoder, X12Document
 from pydantic import BaseModel
 
 
@@ -41,5 +41,5 @@ def dumps(s: str, encoder: EDI_Encoder = None):
 def main():
     # print("hello from core")
     testpath = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_targetds_850.edi")
-    data: X12_Document = cast(X12_Document, load(testpath.open()))
-    pprint(data.loops[0].as_nested_loops)
+    data: X12Document = cast(X12Document, load(testpath.open()))
+    pprint(data.data)

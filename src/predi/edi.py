@@ -1,16 +1,20 @@
-from collections import OrderedDict, UserList
+from collections import UserList
 import logging
 from pathlib import Path
-from pprint import pprint
-from time import time
 from typing import Optional, Union
 from abc import ABC, abstractmethod
 import enum
 from pydantic import BaseModel, validator
 
 
+## Utils
+
+
 class EDI_ValidationError(Exception):
     pass
+
+
+# x12
 
 
 class X12ValidationError:
@@ -36,11 +40,6 @@ class X12Delimeters(BaseModel):
         return v
 
 
-class X12Doctype(enum.Enum):
-    PurchaseOrder = 850
-
-
-## Documents
 class X12_Utils:
     @staticmethod
     def get_seg_loops(LoopClass: type["X12_Loop"], segments: list["X12Segment"]) -> list["X12_Loop"]:
@@ -59,12 +58,26 @@ class X12_Utils:
         return loops
 
 
+class X12Doctype(enum.Enum):
+    PurchaseOrder = 850
+
+
+# EDIFACT
+
+
+class EDIFACT_Utils:
+    pass
+
+
 ## Segments
 
 
 class EDI_Segment(ABC):
     def is_valid(self):
         pass
+
+
+# x12
 
 
 class X12Segment(EDI_Segment, UserList, X12_Utils):
@@ -108,146 +121,16 @@ class X12Segment(EDI_Segment, UserList, X12_Utils):
         return self.delimeters.elem_term.join(self.data) + self.delimeters.seg_term
 
 
-class ISASegment(X12Segment):
-    """
-    Interchange Control Trailer
-    Contains key data for parsing and validation of the EDI document
-    Should be created using a factory.
-    """
-
-    def __init__(self):
-        pass
-
-    authorization_info_qualifier: str
-    auth_info: str
-    security_info_qualifier: str
-    security_info: str
-    intchg_sender_id_qualifier: str
-    intchg_sender_id: str
-    intchg_receiver_id_qualifier: str
-    intchg_receiver_id: str
-    intchg_date: str
-    intchg_time: str
-    intchg_standards_id: str
-    intchg_control_version_number: str
-    intchg_control_number: str
-    acknowledgment_requested: str
-    test_indicator: str
-
-    raw_x12: str
-
-    @classmethod
-    def from_x12(cls, seg_data: str, delimeters=None) -> "ISASegment":
-        isa = cls()
-
-        isa.seg_id = seg_data[0:3]
-        isa.authorization_info_qualifier = seg_data[4:6]
-        isa.auth_info = seg_data[7:17]
-        isa.security_info_qualifier = seg_data[18:20]
-        isa.security_info = seg_data[21:31]
-        isa.intchg_sender_id_qualifier = seg_data[32:34]
-        isa.intchg_sender_id = seg_data[35:50]
-        isa.intchg_receiver_id_qualifier = seg_data[51:53]
-        isa.intchg_receiver_id = seg_data[54:69]
-        isa.intchg_date = seg_data[70:76]
-        isa.intchg_time = seg_data[77:81]
-        isa.intchg_standards_id = seg_data[82]
-        isa.intchg_control_version_number = seg_data[84:89]
-        isa.intchg_control_number = seg_data[90:99]
-        isa.acknowledgment_requested = seg_data[100]
-        isa.test_indicator = seg_data[102]
-        # delemeters
-        elem_term = seg_data[103]
-        elem_divider = seg_data[104]
-        seg_term = seg_data[105]
-        isa.delimeters = X12Delimeters(elem_term=elem_term, elem_divider=elem_divider, seg_term=seg_term)
-
-        isa.raw_x12 = seg_data
-        isa.data = isa._parse_seg_to_list()
-        isa._validate_x12()
-
-        # isa.is_valid()
-        return isa
-
-    def _parse_seg_to_list(self):
-        """Generates list data from fresh x12 data"""
-        elements = self.raw_x12[:-1].split(self.delimeters.elem_term)
-        return elements
-
-    def _validate_x12(self) -> None:
-        """A validation for freshly parsed x12 data."""
-        assert len(self.raw_x12) == 106
-        assert self.raw_x12 == self.as_x12()
-
-    @classmethod
-    def from_list(cls, seg_data: list, delimeters: X12Delimeters):  # elem_term: str = "*", seg_term: str = "~"):
-        isa = cls()
-
-        isa.seg_id = seg_data[0]
-        isa.authorization_info_qualifier = seg_data[1]
-        isa.auth_info = seg_data[2]
-        isa.security_info_qualifier = seg_data[3]
-        isa.security_info = seg_data[4]
-        isa.intchg_sender_id_qualifier = seg_data[5]
-        isa.intchg_sender_id = seg_data[6]
-        isa.intchg_receiver_id_qualifier = seg_data[7]
-        isa.intchg_receiver_id = seg_data[8]
-        isa.intchg_date = seg_data[9]
-        isa.intchg_time = seg_data[10]
-        isa.intchg_standards_id = seg_data[11]
-        isa.intchg_control_version_number = seg_data[12]
-        isa.intchg_control_number = seg_data[13]
-        isa.acknowledgment_requested = seg_data[14]
-        isa.test_indicator = seg_data[15]
-        # delemeters
-
-        isa.delimeters = delimeters
-
-        isa.raw_x12 = isa.delimeters.elem_term.join(seg_data) + isa.delimeters.seg_term
-        isa.data = isa._parse_seg_to_list()
-        isa._validate_x12()
-
-        # isa.is_valid()
-        return isa
-
-    def _validate_delimeters(self):
-        pass
-
-    def is_valid(self):
-        pass
+# EDIFACT
 
 
 class EDIFACT_Segment(EDI_Segment):
     pass
 
 
-class EDI_Document(ABC, X12_Utils):
-    x12_name: int
-    edifact_name: str
+## Loops
 
-    def as_yaml(self):
-        pass
-
-    def as_json(self):
-        pass
-
-    def as_toml(self):
-        pass
-
-    def as_markup(self):
-        pass
-
-    def as_xml(self):
-        pass
-
-    def as_csv(self):
-        pass
-
-    def as_x12(self):
-        pass
-
-    def as_edifact(self):
-        pass
+# x12
 
 
 class X12_Loop(ABC, UserList, X12_Utils):
@@ -285,10 +168,6 @@ class X12_Loop(ABC, UserList, X12_Utils):
         assert self.num_subloops == len(self.subloops)
         assert self.trailer[2] == self.ctrl_num
 
-    def as_nested_loops(self):
-        return self
-        return [loop.as_nested_loops() for loop in self.subloops]
-
 
 class TransactionSet(X12_Loop):
     head_id = "ST"
@@ -300,9 +179,6 @@ class TransactionSet(X12_Loop):
         st_seg = self.header
         self.transaction_set_code = st_seg[1]
         self.ctrl_num = st_seg[2]
-
-    def as_nested_loops(self):
-        return self.data
 
     def get_seg_loops(self, _, segments):
         return segments
@@ -338,7 +214,6 @@ class FunctionalGroup(X12_Loop):
         self.ctrl_num = gs_seg[6]
         self.resp_agency = gs_seg[7]
         self.version_code = gs_seg[8]
-        # self.subloops = self.get_seg_loops(self.loop_contains)
 
 
 class InterchangeEnvelope(X12_Loop):
@@ -358,7 +233,7 @@ class InterchangeEnvelope(X12_Loop):
     intchg_date: str
     intchg_time: str
     intchg_standards_id: str
-
+    # intchg_ctrl_num = ctrl_num
     intchg_control_number: str
     acknowledgment_requested: str
     test_indicator: str
@@ -387,32 +262,61 @@ class InterchangeEnvelope(X12_Loop):
         self.acknowledgment_requested = isa_seg[14]
         self.test_indicator = isa_seg[15]
 
-        # self.subloops = self.get_seg_loops(self.loop_contains)
+
+## Documents
 
 
-class X12_Document(EDI_Document, UserList):
+class EDI_Document(ABC, X12_Utils):
+    x12_name: int
+    edifact_name: str
+
+    def as_yaml(self):
+        pass
+
+    def as_json(self):
+        pass
+
+    def as_toml(self):
+        pass
+
+    def as_markup(self):
+        pass
+
+    def as_xml(self):
+        pass
+
+    def as_csv(self):
+        pass
+
+    def as_x12(self):
+        pass
+
+    def as_edifact(self):
+        pass
+
+
+class X12Document(EDI_Document, UserList):
     doc_type: X12Doctype
     delimeters: X12Delimeters
     raw_x12: str
-    isa: "ISASegment"
-    loops: list[X12_Loop]
+    data: list[X12_Loop]
+    flattened_list: list
 
     @classmethod
     def from_x12(cls, doc_data: str):
-        doc: X12_Document = cls()
+        doc: X12Document = cls()
         doc.raw_x12 = doc_data
-        doc.isa = doc._parse_isa(doc_data)
-        doc.delimeters = doc.isa.delimeters
-        doc.data = doc._parse_doc_to_list()
-        doc.loops = doc.get_seg_loops(InterchangeEnvelope, doc.data)
+        doc.delimeters = doc._parse_delimeters()
+        doc.flattened_list = doc._parse_doc_to_list()
+        doc.data = doc.get_seg_loops(InterchangeEnvelope, doc.flattened_list)
 
         doc._validate_x12()
         return doc
 
-    @staticmethod
-    def _parse_isa(x12: str):
-        isa = ISASegment.from_x12(seg_data=x12[:106])
-        return isa
+    def _parse_delimeters(self):
+        """Returns delimiters from supposed valid x12 stored in self.raw_x12"""
+        elem_term, elem_divider, seg_term = self.raw_x12[103:106]
+        return X12Delimeters(elem_term=elem_term, elem_divider=elem_divider, seg_term=seg_term)
 
     def _parse_doc_to_list(self):
         segments = self.raw_x12.split(self.delimeters.seg_term)
@@ -422,16 +326,9 @@ class X12_Document(EDI_Document, UserList):
         assert True
 
     def as_x12(self):
-        x12_segments = [seg.as_x12() for seg in self.data]
+        x12_segments = [seg.as_x12() for seg in self.flattened_list]
         x12 = "".join(x12_segments)
         return x12
-
-
-class TransactionMap:
-    pass
-
-
-## Settings
 
 
 ## Decoders
@@ -449,26 +346,17 @@ class EDI_Decoder(ABC):
 
 class X12Decoder(EDI_Decoder):
     # @staticmethod
-    # def _parse_isa(x12: str):
-    #     return ISASegment.from_x12(seg_data=x12[:106])
-
     # def __init__(self, x12_delimeters: X12Delimeters = None) -> None:
     #     # self.x12_delimeters = x12_delimeters or X12Delimeters()
     #     pass
 
-    def parse(self, raw_edi: Path) -> X12_Document:
+    def parse(self, raw_edi: Path) -> X12Document:
         with raw_edi.open("r") as f:
             return self.parses(f.read())
 
-    def parses(self, raw_edi: str) -> X12_Document:
-        edi_doc = X12_Document.from_x12(raw_edi)
+    def parses(self, raw_edi: str) -> X12Document:
+        edi_doc = X12Document.from_x12(raw_edi)
         return edi_doc
-
-
-def main():
-    x12_path = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_amz_850.edi")
-    # isa = ISASegment.from_x12(x12_path.open().read())
-    decoder = X12Decoder()
 
 
 ## Encoders
@@ -482,7 +370,7 @@ class X12Encoder(ABC):
     pass
 
 
-## Helper functions
+## Helpers
 class EDI_Standard:
     name: str
     decoder: type[X12Decoder]
