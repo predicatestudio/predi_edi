@@ -8,34 +8,33 @@ import dataclasses
 import enum
 from pathlib import Path
 from pprint import pprint
-from .edi import EDI_Decoder, EDI_Document, guess_edi_standard, EDI_Encoder, X12Document
+from .edi import EDI_Decoder, EDI_Document, X12Encoder, guess_edi_standard, EDI_Encoder, X12Document
 from pydantic import BaseModel
 
 
-def load(fp: TextIO, decoder_cls: type[EDI_Decoder] = None):
+def load(fp: TextIO, *, decoder: EDI_Decoder = None) -> EDI_Document:
     s: str = fp.read()
     return loads(
         s,
-        decoder_cls=decoder_cls,
+        decoder=decoder,
     )
 
 
-def loads(s: str, decoder_cls: type[EDI_Decoder] = None) -> EDI_Document:
-    if not decoder_cls:
-        decoder_cls = guess_edi_standard(s).decoder
-    decoder = cast(EDI_Decoder, decoder_cls())
-    return decoder.parses(s)
+def loads(s: str, *, decoder: EDI_Decoder = None) -> EDI_Document:
+    if not decoder:
+        decoder = guess_edi_standard(s).decoder
+
+    return decoder.decode(s)
 
 
-def dump(fp: TextIO, encoder: EDI_Encoder = None):
-    return dumps(
-        fp.read(),
-        encoder=encoder,
-    )
+def dump(doc: EDI_Document, fp: TextIO, *, encoder: EDI_Encoder | None = None) -> None:
+    fp.write(dumps(doc=doc, encoder=encoder))
 
 
-def dumps(s: str, encoder: EDI_Encoder = None):
-    pass
+def dumps(doc: EDI_Document, *, encoder: EDI_Encoder | None = None) -> str:
+    if not encoder:
+        encoder = guess_edi_standard(doc).encoder
+    return encoder.encode(doc)
 
 
 def main():
@@ -43,3 +42,4 @@ def main():
     testpath = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_targetds_850.edi")
     data: X12Document = cast(X12Document, load(testpath.open()))
     pprint(data.data)
+    import json

@@ -336,25 +336,15 @@ class X12Document(EDI_Document, UserList):
 
 class EDI_Decoder(ABC):
     @abstractmethod
-    def parse(self, raw_edi: Path) -> EDI_Document:
+    def decode(self, raw_edi: str) -> EDI_Document:
         pass
 
-    @abstractmethod
-    def parses(self, raw_edi: str) -> EDI_Document:
-        pass
+
+import json
 
 
 class X12Decoder(EDI_Decoder):
-    # @staticmethod
-    # def __init__(self, x12_delimeters: X12Delimeters = None) -> None:
-    #     # self.x12_delimeters = x12_delimeters or X12Delimeters()
-    #     pass
-
-    def parse(self, raw_edi: Path) -> X12Document:
-        with raw_edi.open("r") as f:
-            return self.parses(f.read())
-
-    def parses(self, raw_edi: str) -> X12Document:
+    def decode(self, raw_edi: str) -> X12Document:
         edi_doc = X12Document.from_x12(raw_edi)
         return edi_doc
 
@@ -363,24 +353,27 @@ class X12Decoder(EDI_Decoder):
 
 
 class EDI_Encoder(ABC):
-    pass
+    @abstractmethod
+    def encode(self, edi_doc: EDI_Document) -> str:
+        pass
 
 
-class X12Encoder(ABC):
-    pass
+class X12Encoder(EDI_Encoder):
+    def encode(self, edi_doc: X12Document) -> str:
+        return edi_doc.as_x12()
 
 
 ## Helpers
 class EDI_Standard:
     name: str
-    decoder: type[X12Decoder]
-    encoder: type[X12Encoder]
+    decoder: EDI_Decoder
+    encoder: EDI_Encoder
 
 
 class X12Standard(EDI_Standard):
     name = "X12"
-    decoder = X12Decoder
-    encoder = X12Encoder
+    decoder = X12Decoder()
+    encoder = X12Encoder()
 
 
 class Standards(enum.Enum):
@@ -392,3 +385,7 @@ def guess_edi_standard(edi) -> EDI_Standard:
     standard: EDI_Standard = Standards.X12.value  # logic needs to go here for guessing
     logging.warning(f"Guessing EDI standard. guess: {standard.name}")
     return standard
+
+
+def main():
+    pass
