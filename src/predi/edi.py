@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from pprint import pprint
 from time import time
-from typing import IO, Optional
+from typing import  Optional
 import yaml
 import markupsafe
 from abc import ABC, abstractclassmethod, abstractmethod
@@ -49,16 +49,16 @@ class X12_Utils:
     @staticmethod
     def get_seg_loops(LoopClass: type["X12_Loop"], segments: list["X12Segment"]) -> list[list["X12_Loop"]]:
         loops: list = []
+        loop: list = []
         loop_active: bool = False
         for seg in segments:
             if seg.seg_id == LoopClass.head_id:
-                loop: X12_Loop = LoopClass()
                 loop_active = True
             if loop_active:
                 loop.append(seg)
             if seg.seg_id == LoopClass.tail_id:
-                loop.validate()
-                loops.append(loop)
+                loops.append(LoopClass(loop))
+                loop.clear()
                 loop_active = False
         return loops
 
@@ -84,6 +84,153 @@ class EDI_Document(ABC, X12_Utils):
 
     def as_csv():
         pass
+
+
+
+class X12_Loop(ABC, UserList, X12_Utils):
+    head_id: str
+    tail_id: str
+    header: "EDI_Segment"
+    trailer: "EDI_Segment"
+    subloops: "X12_Loop"
+
+    def __init__(self, data: Optional[list["X12Segment"]] = None):
+        self.data = data
+        if data:
+            self.validate()
+
+    def _assign_attrs(self):
+        self.header = self.data[0]
+        self.trailer = self.data[-1]
+
+    @abstractmethod
+    def validate(self):
+        self._assign_attrs()
+
+    def get_seg_loops(self, LoopClass: type["X12_Loop"]):
+        return super().get_seg_loops(LoopClass=LoopClass, segments=self.data)
+
+    def as_nested_loops(self):
+        return [loop.as_nested_loops() for loop in self.subloops]
+
+    def _validate_trailer(self):
+        assert int(self.trailer[1]) == len(self.subloops)
+        assert self.trailer[2] == self.ctrl_num
+
+class TransactionSet(X12_Loop):
+    head_id = "ST"
+    tail_id = "SE"
+    # subloops = None
+
+    def validate(self):
+        self._assign_attrs()
+        self._validate_trailer()
+
+    def _assign_attrs(self):
+        super()._assign_attrs()
+        st_seg = self.data[0]
+        self.transaction_set_code = st_seg[1]
+        self.ctrl_num = st_seg[2]
+        self.subloops = self.data
+        # self.subloops = self.get_seg_loops(TransactionSet)
+
+    def _validate_trailer(self):
+
+        assert int(self.trailer[1]) == len(self.data)
+        assert self.trailer[2] == self.ctrl_num
+
+    def as_nested_loops(self):
+        return self.data
+
+    
+
+class FunctionalGroup(X12_Loop):
+    head_id = "GS"
+    tail_id = "GE"
+    subloops: list[TransactionSet]
+
+    func_id: str
+    sender_id: str
+    receiver_id: str
+    date: str
+    time: str
+    ctrl_num: str
+    resp_agency: str
+    version_code: str
+
+    def validate(self):
+        self._assign_attrs()
+        self._validate_trailer()
+
+    def _assign_attrs(self):
+        super()._assign_attrs()
+        gs_seg = self.data[0]
+        self.func_id = gs_seg[1]
+        self.sender_id = gs_seg[2]
+        self.receiver_id = gs_seg[3]
+        self.date = gs_seg[4]
+        self.time = gs_seg[5]
+        self.ctrl_num = gs_seg[6]
+        self.resp_agency = gs_seg[7]
+        self.version_code = gs_seg[8]
+        self.subloops = self.get_seg_loops(TransactionSet)
+
+
+
+class InterchangeEnvelope(X12_Loop):
+    head_id = "ISA"
+    tail_id = "IEA"
+    subloops: list[FunctionalGroup]
+
+    authorization_info_qualifier: str
+    auth_info: str
+    security_info_qualifier: str
+    security_info: str
+    intchg_sender_id_qualifier: str
+    intchg_sender_id: str
+    intchg_receiver_id_qualifier: str
+    intchg_receiver_id: str
+    intchg_date: str
+    intchg_time: str
+    intchg_standards_id: str
+    intchg_control_version_number: str
+    intchg_control_number: str
+    acknowledgment_requested: str
+    test_indicator: str
+
+
+
+    def validate(self):
+        self._assign_attrs()
+        self._validate_trailer()
+
+    def _assign_attrs(self):
+        super()._assign_attrs()
+        isa_seg = self.data[0]
+        self.seg_id = isa_seg[0]
+        self.authorization_info_qualifier = isa_seg[1]
+        self.auth_info = isa_seg[2]
+        self.security_info_qualifier = isa_seg[3]
+        self.security_info = isa_seg[4]
+        self.intchg_sender_id_qualifier = isa_seg[5]
+        self.intchg_sender_id = isa_seg[6]
+        self.intchg_receiver_id_qualifier = isa_seg[7]
+        self.intchg_receiver_id = isa_seg[8]
+        self.intchg_date = isa_seg[9]
+        self.intchg_time = isa_seg[10]
+        self.intchg_standards_id = isa_seg[11]
+        self.intchg_control_version_number = isa_seg[12]
+        self.intchg_control_number = isa_seg[13]
+        self.acknowledgment_requested = isa_seg[14]
+        self.test_indicator = isa_seg[15]
+
+        self.subloops = self.get_seg_loops(FunctionalGroup)
+
+    def _validate_trailer(self):
+        self.subloops = self.get_seg_loops(TransactionSet)
+        ge_seg = self.data[-1]
+        assert int(ge_seg[1]) == len(self.subloops)
+        assert ge_seg[2] == self.ctrl_num
 
 
 class X12_Document(EDI_Document, UserList):
@@ -121,92 +268,6 @@ class X12_Document(EDI_Document, UserList):
         x12_segments = [seg.as_x12() for seg in self.data]
         x12 = "".join(x12_segments)
         return x12
-
-
-class X12_Loop(ABC, UserList, X12_Utils):
-    head_id: str
-    tail_id: str
-    header: "EDI_Segment"
-    trailer: "EDI_Segment"
-    subloops: "X12_Loop"
-
-    def _assign_attrs(self):
-        self.header = self.data[0]
-        self.tailer = self.data[-1]
-
-    @abstractmethod
-    def validate(self):
-        self._assign_attrs()
-        assert True
-
-    def get_seg_loops(self, LoopClass: type["X12_Loop"]):
-        return super().get_seg_loops(LoopClass=LoopClass, segments=self.data)
-
-    def as_nested_loops(self):
-        if self.subloops:
-            return [loop.as_nested_loops() for loop in self.subloops]
-        else:
-            return self.data
-
-
-class FunctionalGroup(X12_Loop):
-    head_id = "GS"
-    tail_id = "GE"
-    subloops: list["TransactionSet"]
-
-    func_id: str
-    sender_id: str
-    receiver_id: str
-    date: str
-    time: str
-    group_ctrl_num: str
-    resp_agency: str
-    version_code: str
-
-    def validate(self):
-        self._assign_attrs()
-        self._validate_trailer()
-
-    def _assign_attrs(self):
-        super()._assign_attrs()
-        gs_seg = self.data[0]
-        self.func_id = gs_seg[1]
-        self.sender_id = gs_seg[2]
-        self.receiver_id = gs_seg[3]
-        self.date = gs_seg[4]
-        self.time = gs_seg[5]
-        self.group_ctrl_num = gs_seg[6]
-        self.resp_agency = gs_seg[7]
-        self.version_code = gs_seg[8]
-        self.subloops = self.get_seg_loops(TransactionSet)
-
-    def _validate_trailer(self):
-        self.subloops = self.get_seg_loops(TransactionSet)
-        ge_seg = self.data[-1]
-        assert int(ge_seg[1]) == len(self.subloops)
-        assert ge_seg[2] == self.group_ctrl_num
-
-
-class TransactionSet(X12_Loop):
-    head_id = "ST"
-    tail_id = "SE"
-    subloops = None
-
-    def validate(self):
-        self._assign_attrs()
-        self._validate_trailer()
-
-    def _assign_attrs(self):
-        super()._assign_attrs()
-        st_seg = self.data[0]
-        self.transaction_set_code = st_seg[1]
-        self.trans_ctrl_num = st_seg[2]
-        # self.subloops = self.get_seg_loops(TransactionSet)
-
-    def _validate_trailer(self):
-        se_seg = self.data[-1]
-        assert int(se_seg[1]) == len(self.data)
-        assert se_seg[2] == self.trans_ctrl_num
 
 
 class TransactionMap:
@@ -250,7 +311,7 @@ class X12Segment(EDI_Segment, UserList):
         return seg
 
     @classmethod
-    def from_list(cls, seg_data: list, delimeters: Optional[X12Delimeters] = None):
+    def from_list(cls, seg_data: list, delimeters: X12Delimeters):
         seg: X12Segment = cls()
         seg.delimeters = delimeters
         seg.data = seg_data
@@ -287,7 +348,6 @@ class ISASegment(X12Segment):
     intchg_control_number: str
     acknowledgment_requested: str
     test_indicator: str
-    # delimeters
 
     raw_x12: str
 
