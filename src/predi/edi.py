@@ -3,6 +3,7 @@ import json
 import logging
 from pathlib import Path
 from pprint import pprint
+from time import time
 from typing import IO, Optional
 import yaml
 import markupsafe
@@ -10,6 +11,14 @@ from abc import ABC, abstractclassmethod, abstractmethod
 import dataclasses
 import enum
 from pydantic import BaseModel, validator
+
+
+class EDI_ValidationError(Exception):
+    pass
+
+
+class X12ValidationError:
+    pass
 
 
 class X12Delimeters(BaseModel):
@@ -36,9 +45,25 @@ class X12Doctype(enum.Enum):
 
 
 ## Documents
+class X12_Utils:
+    @staticmethod
+    def get_seg_loops(LoopClass: type["X12_Loop"], segments: list["X12Segment"]) -> list[list["X12_Loop"]]:
+        loops: list = []
+        loop_active: bool = False
+        for seg in segments:
+            if seg.seg_id == LoopClass.head_id:
+                loop: X12_Loop = LoopClass()
+                loop_active = True
+            if loop_active:
+                loop.append(seg)
+            if seg.seg_id == LoopClass.tail_id:
+                loop.validate()
+                loops.append(loop)
+                loop_active = False
+        return loops
 
 
-class EDI_Document(ABC):
+class EDI_Document(ABC, X12_Utils):
     x12_name: int
     edifact_name: str
 
@@ -66,14 +91,16 @@ class X12_Document(EDI_Document, UserList):
     delimeters: X12Delimeters
     raw_x12: str
     isa: "ISASegment"
+    loops: list["FunctionalGroup"]
 
     @classmethod
     def from_x12(cls, doc_data: str):
-        doc = cls()
+        doc: X12_Document = cls()
         doc.raw_x12 = doc_data
         doc.isa = doc._parse_isa(doc_data)
         doc.delimeters = doc.isa.delimeters
         doc.data = doc._parse_doc_to_list()
+        doc.loops = doc.get_seg_loops(FunctionalGroup, doc.data)
 
         doc._validate_x12()
         return doc
@@ -96,18 +123,100 @@ class X12_Document(EDI_Document, UserList):
         return x12
 
 
+class X12_Loop(ABC, UserList, X12_Utils):
+    head_id: str
+    tail_id: str
+    header: "EDI_Segment"
+    trailer: "EDI_Segment"
+    subloops: "X12_Loop"
+
+    def _assign_attrs(self):
+        self.header = self.data[0]
+        self.tailer = self.data[-1]
+
+    @abstractmethod
+    def validate(self):
+        self._assign_attrs()
+        assert True
+
+    def get_seg_loops(self, LoopClass: type["X12_Loop"]):
+        return super().get_seg_loops(LoopClass=LoopClass, segments=self.data)
+
+    def as_nested_loops(self):
+        if self.subloops:
+            return [loop.as_nested_loops() for loop in self.subloops]
+        else:
+            return self.data
+
+
+class FunctionalGroup(X12_Loop):
+    head_id = "GS"
+    tail_id = "GE"
+    subloops: list["TransactionSet"]
+
+    func_id: str
+    sender_id: str
+    receiver_id: str
+    date: str
+    time: str
+    group_ctrl_num: str
+    resp_agency: str
+    version_code: str
+
+    def validate(self):
+        self._assign_attrs()
+        self._validate_trailer()
+
+    def _assign_attrs(self):
+        super()._assign_attrs()
+        gs_seg = self.data[0]
+        self.func_id = gs_seg[1]
+        self.sender_id = gs_seg[2]
+        self.receiver_id = gs_seg[3]
+        self.date = gs_seg[4]
+        self.time = gs_seg[5]
+        self.group_ctrl_num = gs_seg[6]
+        self.resp_agency = gs_seg[7]
+        self.version_code = gs_seg[8]
+        self.subloops = self.get_seg_loops(TransactionSet)
+
+    def _validate_trailer(self):
+        self.subloops = self.get_seg_loops(TransactionSet)
+        ge_seg = self.data[-1]
+        assert int(ge_seg[1]) == len(self.subloops)
+        assert ge_seg[2] == self.group_ctrl_num
+
+
+class TransactionSet(X12_Loop):
+    head_id = "ST"
+    tail_id = "SE"
+    subloops = None
+
+    def validate(self):
+        self._assign_attrs()
+        self._validate_trailer()
+
+    def _assign_attrs(self):
+        super()._assign_attrs()
+        st_seg = self.data[0]
+        self.transaction_set_code = st_seg[1]
+        self.trans_ctrl_num = st_seg[2]
+        # self.subloops = self.get_seg_loops(TransactionSet)
+
+    def _validate_trailer(self):
+        se_seg = self.data[-1]
+        assert int(se_seg[1]) == len(self.data)
+        assert se_seg[2] == self.trans_ctrl_num
+
+
 class TransactionMap:
     pass
-
-
-# class PurchaseOrder(X12_Document):
-#     pass
 
 
 ## Segments
 
 
-class EDI_Segment(ABC):
+class EDI_Segment(ABC, X12_Utils):
     def is_valid(self):
         pass
 
@@ -123,9 +232,9 @@ class X12Segment(EDI_Segment, UserList):
     # elem_divider: str
     # seg_term: str
 
-    def __post_init__(self):
-        self.seg_len = len(self.raw)
-        self.elements = self.get_elements()
+    # def __init__(self):
+    #     self.seg_len = len(self.data)
+    #     self.elements = self.get_elements()
 
     # @abstractmethod
     # def get_elements(self):
@@ -136,6 +245,17 @@ class X12Segment(EDI_Segment, UserList):
         seg: X12Segment = cls()
         seg.delimeters = delimeters
         seg.data = seg_data.split(delimeters.elem_term)
+        seg.seg_id = seg.data[0]
+        seg.raw_x12 = seg.as_x12
+        return seg
+
+    @classmethod
+    def from_list(cls, seg_data: list, delimeters: Optional[X12Delimeters] = None):
+        seg: X12Segment = cls()
+        seg.delimeters = delimeters
+        seg.data = seg_data
+        seg.seg_id = seg.data[0]
+        seg.raw_x12 = seg.as_x12
         return seg
 
     def as_x12(self):
@@ -288,7 +408,6 @@ def main():
     x12_path = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_amz_850.edi")
     # isa = ISASegment.from_x12(x12_path.open().read())
     decoder = X12Decoder()
-    pprint(decoder.parse(x12_path))
 
 
 ## Encoders

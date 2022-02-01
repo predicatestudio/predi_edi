@@ -39,9 +39,6 @@ def dumps(s: str, encoder: EDI_Encoder = None):
 def main():
     # print("hello from core")
     testpath = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_targetds_850.edi")
-    data = load(testpath.open())
-    
-    with testpath.open('r') as fp:
-        pdata = data.as_x12()
-        rdata = fp.read()
-        assert pdata == rdata
+    data: X12_Document = load(testpath.open())
+
+    pprint(data.loops[0].as_nested_loops())
