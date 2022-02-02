@@ -3,6 +3,8 @@
 import os
 import click
 import pytest
+
+from predi.tests import generate_fixtures
 from . import core, edi
 
 # from predi import local
@@ -60,7 +62,11 @@ def core_cli():
 def edi_cli():
     edi.main()
 
+@click.command(name="generate-fixtures")
+def generate_fixtures_cli():
+    generate_fixtures.main()
 
+cli.add_command(generate_fixtures_cli)
 cli.add_command(edi_cli)
 cli.add_command(core_cli)
 cli.add_command(system_group)

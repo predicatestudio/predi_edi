@@ -2,6 +2,7 @@
 # Also can download codepacks (such as framework) into the project.
 
 from pathlib import Path
+from typing import MutableMapping
 from setuptools import setup
 from setuptools import find_packages
 import toml
@@ -17,7 +18,7 @@ def normalize(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def _parse_pyproject(pyproject_path: str) -> str:
+def _parse_pyproject(pyproject_path: str) -> MutableMapping:
     """Opens a pyproject.toml at 'pyproject_path' and returns the contents as a dictionary."""
     pp = Path(pyproject_path)
     return toml.load(pp.open())
@@ -72,7 +73,7 @@ def parse_extras_require(pyproject: dict[str, dict[str, list[str]]]) -> dict[str
 
 # VARS
 pyproject_path: str = "pyproject.toml"
-pyproject: dict = _parse_pyproject(pyproject_path)
+pyproject: MutableMapping = _parse_pyproject(pyproject_path)
 project_name: str = normalize(pyproject["project"]["name"])
 src: str = pyproject["tool"]["bem"]["source-directory"]
 dirs: list[str] = [".tmp", ".tmp/download", ".tmp/logs"]

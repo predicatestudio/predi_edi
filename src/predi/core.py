@@ -1,6 +1,7 @@
 from curses import raw
 import json
 from typing import IO, TextIO, cast
+from attr import asdict
 import yaml
 import markupsafe
 from abc import ABC
@@ -8,7 +9,7 @@ import dataclasses
 import enum
 from pathlib import Path
 from pprint import pprint
-from .edi import EDI_Decoder, EDI_Document, X12Encoder, guess_edi_standard, EDI_Encoder, X12Document
+from .edi import EDI_Decoder, EDI_Document, PREDIEncoder_JSON, X12Encoder, guess_edi_standard, EDI_Encoder, X12Document
 from pydantic import BaseModel
 
 
@@ -32,6 +33,7 @@ def dump(doc: EDI_Document, fp: TextIO, *, encoder: EDI_Encoder | None = None) -
 
 
 def dumps(doc: EDI_Document, *, encoder: EDI_Encoder | None = None) -> str:
+    """Returns a string EDI encoding based on the Encoder passed. Defaults to X12Encoder"""
     if not encoder:
         encoder = guess_edi_standard(doc).encoder
     return encoder.encode(doc)
@@ -41,5 +43,4 @@ def main():
     # print("hello from core")
     testpath = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_targetds_850.edi")
     data: X12Document = cast(X12Document, load(testpath.open()))
-    pprint(data.data)
-    import json
+    pprint(dumps(data, encoder=PREDIEncoder_JSON()))

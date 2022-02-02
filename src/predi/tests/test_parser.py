@@ -3,9 +3,9 @@ from ..core import load
 import pytest
 from pathlib import Path
 from os import getcwd
+from . import TEST_DIR
 
-testing_dir = Path(__file__).parents[0]
-x12_850 = testing_dir / "samples/x12/850/sample_amz_850.edi"
+x12_850 = TEST_DIR / "samples/x12/850/sample_amz_850.edi"
 
 
 class TestEDIDecoder:

@@ -1,10 +1,12 @@
 from collections import UserList
 import logging
 from pathlib import Path
+from pprint import pprint
 from typing import Optional, Union
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 import enum
 from pydantic import BaseModel, validator
+import json
 
 
 ## Utils
@@ -17,7 +19,11 @@ class EDI_ValidationError(Exception):
 # x12
 
 
-class X12ValidationError:
+class X12ValidationError(EDI_ValidationError):
+    pass
+
+
+class X12TrailerValidationError(X12ValidationError):
     pass
 
 
@@ -165,7 +171,13 @@ class X12_Loop(ABC, UserList, X12_Utils):
         self.num_subloops = int(self.trailer[1])
 
     def _validate_trailer(self):
-        assert self.num_subloops == len(self.subloops)
+        if not self.num_subloops == len(self.subloops):
+            raise X12TrailerValidationError(
+                f"""x12 loop with header and tailer
+            {self.header}
+            {self.trailer}
+            has {len(self.subloops)} elements, but the {self.tail_id}01 is {self.num_subloops}"""
+            )
         assert self.trailer[2] == self.ctrl_num
 
 
@@ -267,43 +279,79 @@ class InterchangeEnvelope(X12_Loop):
 
 
 class EDI_Document(ABC, X12_Utils):
-    x12_name: int
-    edifact_name: str
-
-    def as_yaml(self):
+    @abstractclassmethod
+    def from_x12(cls, doc_data):
         pass
 
-    def as_json(self):
-        pass
-
-    def as_toml(self):
-        pass
-
-    def as_markup(self):
-        pass
-
-    def as_xml(self):
-        pass
-
-    def as_csv(self):
-        pass
-
+    @abstractmethod
     def as_x12(self):
         pass
 
-    def as_edifact(self):
+    @abstractclassmethod
+    def from_json(cls, doc_data):
         pass
+
+    @abstractmethod
+    def as_json(self) -> str:
+        pass
+
+    # @abstractclassmethod
+    # def from_yaml(cls, doc_data):
+    #     pass
+
+    # @abstractmethod
+    # def as_yaml(self):
+    #     pass
+
+    # @abstractclassmethod
+    # def from_toml(cls, doc_data):
+    #     pass
+
+    # @abstractmethod
+    # def as_toml(self):
+    #     pass
+
+    # @abstractclassmethod
+    # def from_markup(cls, doc_data):
+    #     pass
+
+    # @abstractmethod
+    # def as_markup(self):
+    #     pass
+
+    # @abstractclassmethod
+    # def from_xml(cls, doc_data):
+    #     pass
+
+    # @abstractmethod
+    # def as_xml(self):
+    #     pass
+
+    # @abstractclassmethod
+    # def from_csv(cls, doc_data):
+    #     pass
+
+    # @abstractmethod
+    # def as_csv(self):
+    #     pass
+
+    # @abstractclassmethod
+    # def from_edifact(cls, doc_data):
+    #     pass
+
+    # @abstractmethod
+    # def as_edifact(self):
+    #     pass
 
 
 class X12Document(EDI_Document, UserList):
-    doc_type: X12Doctype
     delimeters: X12Delimeters
     raw_x12: str
     data: list[X12_Loop]
     flattened_list: list
 
     @classmethod
-    def from_x12(cls, doc_data: str):
+    def from_x12(cls, doc_data: str) -> "X12Document":
         doc: X12Document = cls()
         doc.raw_x12 = doc_data
         doc.delimeters = doc._parse_delimeters()
@@ -312,6 +360,18 @@ class X12Document(EDI_Document, UserList):
 
         doc._validate_x12()
         return doc
+
+    @classmethod
+    def from_json(cls, doc_data) -> "X12Document":
+        return X12Document()
+        # doc: X12Document = cls()
+        # doc.raw_x12 = doc_data
+        # doc.delimeters = doc._parse_delimeters()
+        # doc.flattened_list = doc._parse_doc_to_list()
+        # doc.data = doc.get_seg_loops(InterchangeEnvelope, doc.flattened_list)
+
+        # doc._validate_x12()
+        # return doc
 
     def _parse_delimeters(self):
         """Returns delimiters from supposed valid x12 stored in self.raw_x12"""
@@ -329,6 +389,12 @@ class X12Document(EDI_Document, UserList):
         x12_segments = [seg.as_x12() for seg in self.flattened_list]
         x12 = "".join(x12_segments)
         return x12
+
+    def as_json(self) -> str:
+        j_form = {
+            "x12": self.data,
+        }
+        return json.dumps(j_form, cls=EDI_Serializer)
 
 
 ## Decoders
@@ -363,7 +429,29 @@ class X12Encoder(EDI_Encoder):
         return edi_doc.as_x12()
 
 
+class PREDIEncoder_JSON(EDI_Encoder):
+    def encode(self, edi_doc: EDI_Document) -> str:
+        return edi_doc.as_json()
+
+
+# class JSON_EDI_Encoder(json.JSONEncoder):
+#     def default(self, obj):
+#         if isinstance(obj, X12_Loop):
+#             pprint(obj.data)
+#             obj= self.default(obj.data)
+#         return super().default(obj)
+
+
 ## Helpers
+
+
+class EDI_Serializer(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UserList):
+            return obj.data
+        return obj
+
+
 class EDI_Standard:
     name: str
     decoder: EDI_Decoder
