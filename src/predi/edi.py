@@ -348,7 +348,7 @@ class X12Document(EDI_Document, UserList):
     delimeters: X12Delimeters
     raw_x12: str
     data: list[X12_Loop]
-    flattened_list: list
+    flattened_list: list[X12Segment]
 
     @classmethod
     def from_x12(cls, doc_data: str) -> "X12Document":
@@ -378,7 +378,7 @@ class X12Document(EDI_Document, UserList):
         elem_term, elem_divider, seg_term = self.raw_x12[103:106]
         return X12Delimeters(elem_term=elem_term, elem_divider=elem_divider, seg_term=seg_term)
 
-    def _parse_doc_to_list(self):
+    def _parse_doc_to_list(self) -> list[X12Segment]:
         segments = self.raw_x12.split(self.delimeters.seg_term)
         return [X12Segment.from_x12(seg_data=segment, delimeters=self.delimeters) for segment in segments if segment]
 

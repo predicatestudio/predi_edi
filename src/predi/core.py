@@ -1,16 +1,7 @@
-from curses import raw
-import json
-from typing import IO, TextIO, cast
-from attr import asdict
-import yaml
-import markupsafe
-from abc import ABC
-import dataclasses
-import enum
+from typing import TextIO, cast
 from pathlib import Path
 from pprint import pprint
-from .edi import EDI_Decoder, EDI_Document, PREDIEncoder_JSON, X12Encoder, guess_edi_standard, EDI_Encoder, X12Document
-from pydantic import BaseModel
+from .edi import EDI_Decoder, EDI_Document, PREDIEncoder_JSON, guess_edi_standard, EDI_Encoder, X12Document
 
 
 def load(fp: TextIO, *, decoder: EDI_Decoder = None) -> EDI_Document:
