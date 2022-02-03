@@ -2,38 +2,38 @@ from pathlib import Path
 
 from predi import edi
 from predi.core import dump, load
-from . import TEST_DIR
+from . import TEST_DIR, SAMPLE_DIR, FIXTURE_DIR
 
-SAMPLES_DIR = TEST_DIR / "samples"
-FIXTURES_DIR = TEST_DIR / "fixtures"
+# DECODERS = {
+#     "x12": edi.X12Decoder(),
+#     "json": edi.PrEDIDecoder_JSON(),
+# }
 
-DECODERS = {
-    "x12": edi.X12Decoder,
-    # "json": edi.PREDIDecoder_JSON
-}
+# ENCODERS = {
+#     "x12": edi.X12Encoder(),
+#     "json": edi.PrEDIEncoder_JSON(indent=2),
+# }
 
-ENCODERS = {
-    "x12": edi.X12Encoder,
-    "json": edi.PREDIEncoder_JSON
-}
 
 def main():
     write_loaded_fixtures()
 
 
 def write_loaded_fixtures():
-    for standard_dir in SAMPLES_DIR.iterdir():
+    for standard_dir in SAMPLE_DIR.iterdir():
+        s_standard = edi.Standards[standard_dir.stem].value
         for trans_dir in standard_dir.iterdir():
             for edi_file in trans_dir.iterdir():
-                if edi_file.suffix == ".edi":
-                    for standard, encoder in [(s, e) for s,e in ENCODERS.items() if not s==standard_dir]:
+                if edi_file.suffix == s_standard.file_suffix:
+                    for f_standard in [st.value for st in edi.Standards if not st.name == s_standard.name]:
 
-                        fixture_file = FIXTURES_DIR / standard_dir.stem / standard / trans_dir.stem / str(edi_file.stem + ".predi")
+                        fixture_file = FIXTURE_DIR / s_standard.name / f_standard.name / trans_dir.stem / str(edi_file.stem + f_standard.file_suffix)
                         fixture_file.parent.mkdir(parents=True, exist_ok=True)
                         fixture_file.touch()
                         with fixture_file.open("w") as wf, edi_file.open("r") as rf:
-                            doc = load(rf)
-                            dump(doc, wf, encoder=encoder())
+                            # Get the decoder from the Standard based on dir structure
+                            doc = load(rf, decoder=s_standard.decoder)
+                            dump(doc, wf, encoder=f_standard.encoder)
 
 
 if __name__ == "__main__":
