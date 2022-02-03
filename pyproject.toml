@@ -20,6 +20,7 @@ dependencies = [
   "pytest",
   "pytest-cov",
   "pyyaml",
+  "pydantic",
 
   # examples:
   # "req-win-pack >= 3.1.0; sys_platform == 'win32'",
