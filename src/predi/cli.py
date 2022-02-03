@@ -1,24 +1,19 @@
 """This begins a basic cli. In its current state, bem calls these commands if predi.repo/tests is True"""
 
-import os
+
+from pathlib import Path
+
 import click
 import pytest
 
 from predi.tests import generate_fixtures
+
 from . import core, edi
-
-# from predi import local
-# from predi.local import PROJ_NAME, PROJ_DIR, PROJ_VERSION, COV_CONFIG
-from pprint import pprint
-
-
-# PROJECT_NAME = PROJ_NAME
 
 context_settings = {"help_option_names": ["-h", "--help"]}
 
 
 @click.group(context_settings=context_settings)
-# @click.version_option(prog_name=PROJECT_NAME.capitalize(), version=PROJ_VERSION)
 @click.pass_context
 def cli(ctx):
     pass
@@ -29,46 +24,48 @@ def system_group():
     pass
 
 
-# @system_group.command(name="settings")
-# def settings_cli():
-#     pprint(local.list_settings(local))
+@system_group.command(name="selftest")
+def selftest_cli():
+    pytest.main(["."])
 
 
-# @system_group.command(name="version")
-# def version_cli():
-#     print(local.PROJ_VERSION)
+@click.command(name="load")
+@click.option("--lang", default=None, help="EDI langauge of source")
+@click.argument("filepath")
+def load_cli(lang: str, filepath: str):
+    if lang:
+        decoder = edi.Standards[lang].value.decoder
+    else:
+        decoder = None
+    click.echo(core.load(Path(filepath).open(), decoder=decoder))
 
 
-# @system_group.command(name="selftest")
-# def selftest_cli():
-#     pytest.main([str(PROJ_DIR)])
+@click.command(name="translate")
+@click.option("-f", default=None, help="EDI langauge of source")
+@click.argument("source")
+@click.option("-t", default=None, help="EDI langauge of destination")
+@click.argument("destination")
+def translate_cli(f: str, source: str, t: str, destination):
+    if f:
+        decoder = edi.get_standard(f).decoder
+    else:
+        decoder = None
+    doc = core.load(Path(source).open("r"), decoder=decoder)
+    if t:
+        encoder = edi.get_standard(t).encoder
+    else:
+        encoder = None
+    core.dump(doc, Path(destination).open("w"), encoder=encoder)
 
-
-# @system_group.command(name="selfcoverage")
-# def selfcoverage_cli():
-#     os.chdir(PROJ_DIR)
-#     cov_config = ""
-#     if COV_CONFIG:
-#         cov_config = f"--cov-config={COV_CONFIG}"
-#     pytest.main([cov_config, f"--cov={PROJ_NAME}", "--cov-report", "term-missing", str(PROJ_DIR)])
-
-
-@click.command(name="core")
-def core_cli():
-    core.main()
-
-
-@click.command(name="edi")
-def edi_cli():
-    edi.main()
 
 @click.command(name="generate-fixtures")
 def generate_fixtures_cli():
     generate_fixtures.main()
 
+
+cli.add_command(load_cli)
+cli.add_command(translate_cli)
 cli.add_command(generate_fixtures_cli)
-cli.add_command(edi_cli)
-cli.add_command(core_cli)
 cli.add_command(system_group)
 main = cli
 

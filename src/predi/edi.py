@@ -1,20 +1,15 @@
-from collections import UserList
-import logging
-from pathlib import Path
-from pprint import pprint
-from sys import settrace
-from time import sleep
-from typing import Optional, Union
-from abc import ABC, abstractclassmethod, abstractmethod
 import enum
-from pydantic import BaseModel, validator
 import json
+import logging
+from abc import ABC, abstractclassmethod, abstractmethod
+from collections import UserList
+from typing import Optional, Union
+
 import tomlkit
-
 import yaml
+from pydantic import BaseModel, validator
 
-
-## Utils
+#     Utils
 
 
 class EDI_ValidationError(Exception):
@@ -101,7 +96,7 @@ class EDIFACT_Utils:
     ...
 
 
-## Segments
+#     Segments
 
 
 class EDI_Segment(ABC):
@@ -148,7 +143,7 @@ class EDIFACT_Segment(EDI_Segment):
     ...
 
 
-## Loops
+#     Loops
 
 # x12
 
@@ -291,7 +286,7 @@ class InterchangeEnvelope(X12_Loop):
         self.test_indicator = isa_seg[15]
 
 
-## Documents
+#     Documents
 
 
 class EDI_Document(ABC, X12_Utils):
@@ -467,7 +462,7 @@ class X12Document(EDI_Document, UserList):
         return tomlkit.dumps(json.loads(self.as_json()))
 
 
-## Decoders
+#     Decoders
 
 
 class EDI_Decoder(ABC):
@@ -499,7 +494,8 @@ class PrEDIDecoder_TOML(EDI_Decoder):
         edi_doc = X12Document.from_toml(raw_edi)
         return edi_doc
 
-## Encoders
+
+#     Encoders
 
 
 class EDI_Encoder(ABC):
@@ -545,6 +541,7 @@ class EDI_Standard(ABC):
     name: str
     decoder: EDI_Decoder
     encoder: EDI_Encoder
+    file_suffix: str
 
 
 class X12Standard(EDI_Standard):
@@ -567,6 +564,7 @@ class PrEDI_YAMLStandard(EDI_Standard):
     encoder = PrEDIEncoder_YAML()
     file_suffix = ".yaml"
 
+
 class PrEDI_TOMLStandard(EDI_Standard):
     name = "toml"
     decoder = PrEDIDecoder_TOML()
@@ -581,12 +579,11 @@ class Standards(enum.Enum):
     toml = PrEDI_TOMLStandard()
 
 
+def get_standard(edi_lang: str):
+    return Standards[edi_lang].value
+
 def guess_edi_standard(edi) -> EDI_Standard:
     # standards = Standards()
     standard: EDI_Standard = Standards.x12.value  # logic needs to go here for guessing
     logging.warning(f"Guessing EDI standard. guess: {standard.name}")
     return standard
-
-
-def main():
-    ...
