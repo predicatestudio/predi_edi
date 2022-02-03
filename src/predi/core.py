@@ -38,7 +38,8 @@ def main():
     data: X12Document = cast(X12Document, load(testpath.open(), decoder=X12Decoder()))
     # fixdata: X12Document = cast(X12Document, load(fixpath.open(), decoder=PrEDIDecoder_JSON()))
     # pprint(dumps(data, encoder=PrEDIEncoder_JSON()))
-    pprint(X12Document.from_yaml(data.as_yaml()))
+    # pprint(X12Document.from_yaml(data.as_toml()))
+    pprint(X12Document.from_toml(data.as_toml()))
     # for i in range(len(fixdata.flattened_list)):
     #     f_el, d_el = fixdata.flattened_list[i], data.flattened_list[i]
     #     if not (f_el == d_el):
