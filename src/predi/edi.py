@@ -168,12 +168,12 @@ class X12_Loop(ABC, UserList, X12_Utils):
         # self._assign_attrs()
         self._validate_trailer()
 
-    def _assign_loop_data(self, segments) -> None:
+    def _assign_loop_data(self, segments: list[X12Segment]) -> None:
         """Given the segments of the loop, assigns header, trailer, subloops, and stores loop as a list"""
         self.header = segments[0]
         self.trailer = segments[-1]
         self.subloops = self.get_seg_loops(self.loop_contains, segments)
-        self.data = [self.header, self.subloops, self.trailer]
+        self.data = [self.header, self.subloops, self.trailer] # type: ignore # mypy not understaning internals of list
 
     @abstractmethod
     def _assign_attrs(self):
@@ -508,7 +508,7 @@ class EDI_Encoder(ABC):
 
 
 class X12Encoder(EDI_Encoder):
-    def encode(self, edi_doc: X12Document) -> str:
+    def encode(self, edi_doc: EDI_Document) -> str:
         return edi_doc.as_x12()
 
 

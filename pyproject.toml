@@ -26,35 +26,35 @@ dependencies = [
   # 'some-pkg @ git+ssh://git@github.com/someorgname/pkg-repo-name@v1.1#egg=some-pkg',
 ]
 
-# extras
-[project.optional-dependencies]
-test = [
-  "pytest",
-  "pytest-cov",
-]
-lint = [
-  "black",
-  "radon",
-  "flake8",
-  "mypy",
-]
-ci = [
-  "predi[test]",
-  "predi[lint]",
-]
-dev = [
-  "predi[ci]",
-  "ipython",
-]
+  # extras
+  [project.optional-dependencies]
+  test = [
+    "pytest",
+    "pytest-cov",
+  ]
+  lint = [
+    "black",
+    "radon",
+    "flake8",
+    "mypy",
+  ]
+  ci = [
+    "predi[test]",
+    "predi[lint]",
+  ]
+  dev = [
+    "predi[ci]",
+    "ipython",
+  ]
 
-[project.urls]
-homepage = "example.com"
-documentation = "readthedocs.org"
-repository = "https://github.com/predicatestudio/predicate_templates"
-changelog = "github.com/me/spam/blob/master/CHANGELOG.md"
+  [project.urls]
+  homepage = "example.com"
+  documentation = "readthedocs.org"
+  repository = "https://github.com/predicatestudio/predicate_templates"
+  changelog = "github.com/me/spam/blob/master/CHANGELOG.md"
 
-[project.scripts]
-cli = "predi.cli:main"
+  [project.scripts]
+  cli = "predi.cli:main"
 
 [build-system]
 requires = [
@@ -64,23 +64,28 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 150
+[tool]
+  [tool.black]
+  line-length = 150
 
-[tool.bem]
-source-directory = "src"
-pins = [
-  "click > 6",
-]
+  [tool.bem]
+  source-directory = "src"
+  pins = [
+    "click > 6",
+  ]
 
-# [tool.bem.codepack]
-# framework = "https://github.com/terminal-labs/bash-environment-shelf/archive/refs/heads/master.zip"
+  # [tool.bem.codepack]
+  # framework = "https://github.com/terminal-labs/bash-environment-shelf/archive/refs/heads/master.zip"
 
-[tool.pytest.ini_options]
-addopts = "-x -v"
-testpaths = [
-  "src/predi/tests"
-]
-
-[tool.pytest.pytest-cov]
-cov-config = ".coveragerc"
+  [tool.pytest.ini_options]
+  addopts = "-x -v"
+  testpaths = [
+    "src/predi/tests"
+  ]
+  [tool.mypy]
+  pretty = true
+  python_version = "3.10"
+  warn_unused_configs = true
+  files = "./src"
+  [tool.pytest.pytest-cov]
+  cov-config = ".coveragerc"
