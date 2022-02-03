@@ -1,10 +1,6 @@
-from predi import edi
 from .. import edi
-from ..core import load, dump
-import pytest
-from pathlib import Path
-from os import getcwd
-from . import TEST_DIR, SAMPLE_DIR, FIXTURE_DIR
+from ..core import load
+from . import FIXTURE_DIR, SAMPLE_DIR, TEST_DIR
 
 x12_850 = TEST_DIR / "samples/x12/850/sample_amz_850.edi"
 

@@ -1,18 +1,7 @@
-from pathlib import Path
-
 from predi import edi
 from predi.core import dump, load
-from . import TEST_DIR, SAMPLE_DIR, FIXTURE_DIR
 
-# DECODERS = {
-#     "x12": edi.X12Decoder(),
-#     "json": edi.PrEDIDecoder_JSON(),
-# }
-
-# ENCODERS = {
-#     "x12": edi.X12Encoder(),
-#     "json": edi.PrEDIEncoder_JSON(indent=2),
-# }
+from . import FIXTURE_DIR, SAMPLE_DIR
 
 
 def main():

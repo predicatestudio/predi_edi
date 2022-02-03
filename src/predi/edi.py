@@ -582,6 +582,7 @@ class Standards(enum.Enum):
 def get_standard(edi_lang: str):
     return Standards[edi_lang].value
 
+
 def guess_edi_standard(edi) -> EDI_Standard:
     # standards = Standards()
     standard: EDI_Standard = Standards.x12.value  # logic needs to go here for guessing

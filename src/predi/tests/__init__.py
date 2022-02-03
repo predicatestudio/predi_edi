@@ -1,4 +1,3 @@
-from doctest import script_from_examples
 from pathlib import Path
 
 TEST_DIR = Path(__file__).parents[0]

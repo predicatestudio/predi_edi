@@ -1,4 +1,5 @@
 from typing import TextIO
+
 from .edi import EDI_Decoder, EDI_Document, EDI_Encoder, guess_edi_standard
 
 
