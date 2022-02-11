@@ -1,5 +1,5 @@
 {
-  "x12_delimeters": [
+  "x12_delimiters": [
     "*",
     ">",
     "~"
@@ -216,7 +216,7 @@
                 "N9",
                 "L1",
                 "MESSAGEMESSAGE",
-                "This item must be returned within 90 days of "
+                "This item must be returned within 90 days of"
               ],
               [
                 "N9",

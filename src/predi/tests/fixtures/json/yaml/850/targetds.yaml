@@ -163,7 +163,7 @@ x12:
   - - IEA
     - '1'
     - '000404103'
-x12_delimeters:
+x12_delimiters:
 - '*'
 - '>'
 - '~'

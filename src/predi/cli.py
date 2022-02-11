@@ -1,14 +1,11 @@
 """This begins a basic cli. In its current state, bem calls these commands if predi.repo/tests is True"""
-
-
 from pathlib import Path
 
 import click
 import pytest
 
-from predi.tests import generate_fixtures
-
-from . import core, edi
+from . import core, edi, transactions
+from .tests import generate_fixtures
 
 context_settings = {"help_option_names": ["-h", "--help"]}
 
@@ -68,6 +65,14 @@ cli.add_command(translate_cli)
 cli.add_command(generate_fixtures_cli)
 cli.add_command(system_group)
 main = cli
+
+
+@click.command("trans")
+def transaction_cli():
+    transactions.main()
+
+
+cli.add_command(transaction_cli)
 
 if __name__ == "__main__":
     main()

@@ -70,7 +70,7 @@ x12:
   - - IEA
     - '1'
     - 000069737
-x12_delimeters:
+x12_delimiters:
 - '*'
 - '>'
 - '~'

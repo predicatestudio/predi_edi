@@ -27,7 +27,7 @@ class X12TrailerValidationError(X12ValidationError):
     ...
 
 
-class X12Delimeters(BaseModel):
+class X12Delimiters(BaseModel):
     elem_term: str  # = "*"
     elem_divider: str  # = ":"
     seg_term: str  # = "~"
@@ -49,7 +49,7 @@ class X12Delimeters(BaseModel):
         return [self.elem_term, self.elem_divider, self.seg_term]
 
     @classmethod
-    def from_list(cls, tup: list | tuple) -> "X12Delimeters":
+    def from_list(cls, tup: list | tuple) -> "X12Delimiters":
         return cls(elem_term=tup[0], elem_divider=tup[1], seg_term=tup[2])
 
 
@@ -71,13 +71,13 @@ class X12_Utils:
         return loops
 
     @staticmethod
-    def _flatten_loops(loops, delimeters: X12Delimeters):
+    def _flatten_loops(loops, delimiters: X12Delimiters):
         flattened = []
         for loop in loops:
             if isinstance(loop[0], str):
-                flattened.append(X12Segment.from_list(loop, delimeters))
+                flattened.append(X12Segment.from_list(loop, delimiters))
             else:
-                flattened += X12_Utils._flatten_loops(loop, delimeters)
+                flattened += X12_Utils._flatten_loops(loop, delimiters)
         return flattened
 
     @staticmethod
@@ -109,31 +109,36 @@ class EDI_Segment(ABC):
 
 class X12Segment(EDI_Segment, UserList, X12_Utils):
     seg_id: str
-    delimeters: X12Delimeters
+    delimiters: X12Delimiters
 
     raw_x12: str
     seg_len: Optional[int] = None
 
     @classmethod
-    def from_x12(cls, seg_data: str, delimeters: X12Delimeters) -> "X12Segment":
+    def from_x12(cls, seg_data: str, delimiters: X12Delimiters) -> "X12Segment":
         seg: X12Segment = cls()
-        seg.delimeters = delimeters
-        seg.data = seg_data.split(delimeters.elem_term)
+        seg.delimiters = delimiters
+        seg_data = seg.wipe_extra_newlines(seg_data)
+        seg.data = seg_data.split(delimiters.elem_term)
         seg.seg_id = seg.data[0]
         seg.raw_x12 = seg.as_x12()
         return seg
 
     @classmethod
-    def from_list(cls, seg_data: list, delimeters: X12Delimeters):
+    def from_list(cls, seg_data: list, delimiters: X12Delimiters):
         seg: X12Segment = cls()
-        seg.delimeters = delimeters
+        seg.delimiters = delimiters
         seg.data = seg_data
         seg.seg_id = seg.data[0]
         seg.raw_x12 = seg.as_x12()
         return seg
 
+    @staticmethod
+    def wipe_extra_newlines(seg_data: str):
+        return seg_data.strip()
+
     def as_x12(self) -> str:
-        return self.delimeters.elem_term.join(self.data) + self.delimeters.seg_term
+        return self.delimiters.elem_term.join(self.data) + self.delimiters.seg_term
 
 
 # EDIFACT
@@ -156,6 +161,7 @@ class X12_Loop(ABC, UserList, X12_Utils):
     loop_contains: type["X12_Loop"]
     subloops: list["X12_Loop"] | list[X12Segment]
     data: list[Union[X12Segment, list["X12_Loop"]]] | list[X12Segment]
+    transactions: list["TransactionSet"]
 
     ctrl_num: str
 
@@ -173,11 +179,15 @@ class X12_Loop(ABC, UserList, X12_Utils):
         self.header = segments[0]
         self.trailer = segments[-1]
         self.subloops = self.get_seg_loops(self.loop_contains, segments)
-        self.data = [self.header, self.subloops, self.trailer] # type: ignore # mypy not understaning internals of list
+        self.data = [self.header, self.subloops, self.trailer]  # type: ignore # mypy not understaning internals of list
 
     @abstractmethod
     def _assign_attrs(self):
         self.num_subloops = int(self.trailer[1])
+        self.transactions = []
+        for transaction in [loop.get_transactions() for loop in self.subloops if isinstance(loop, X12_Loop)]:
+            self.transactions += transaction
+
 
     def _validate_trailer(self):
         if not self.num_subloops == len(self.subloops):
@@ -188,6 +198,9 @@ class X12_Loop(ABC, UserList, X12_Utils):
             has {len(self.subloops)} elements, but the {self.tail_id}01 is {self.num_subloops}"""
             )
         assert self.trailer[2] == self.ctrl_num
+
+    def get_transactions(self) -> list["TransactionSet"]:
+        return self.transactions
 
 
 class TransactionSet(X12_Loop):
@@ -205,6 +218,11 @@ class TransactionSet(X12_Loop):
 
     def get_seg_loops(self, _, segments):
         return segments
+
+    def get_transactions(self) -> list["TransactionSet"]:
+        return [
+            self,
+        ]
 
 
 class FunctionalGroup(X12_Loop):
@@ -365,18 +383,20 @@ class EDI_Document(ABC, X12_Utils):
 
 
 class X12Document(EDI_Document, UserList):
-    delimeters: X12Delimeters
+    delimiters: X12Delimiters
     raw_x12: str
     data: list[X12_Loop]
     flattened_list: list[X12Segment]
+    transactions: list[TransactionSet]
 
     @classmethod
     def from_x12(cls, doc_data: str) -> "X12Document":
         doc: X12Document = cls()
         doc.raw_x12 = doc_data
-        doc.delimeters = doc._parse_delimeters()
+        doc.delimiters = doc._parse_delimiters()
         doc.flattened_list = doc._parse_x12_to_list()
         doc.data = doc.get_seg_loops(InterchangeEnvelope, doc.flattened_list)
+        doc.transactions = [loop.get_transactions() for loop in doc.data]
 
         doc._validate_x12()
         return doc
@@ -386,8 +406,8 @@ class X12Document(EDI_Document, UserList):
         """Generates X12Document from json compliant with predi-json standards.
         (json of the same format as is generated by PrEDIEncoder_JSON)"""
         doc: X12Document = cls()
-        doc.delimeters = X12Delimeters.from_list(doc_data["x12_delimeters"])
-        doc.flattened_list = doc._flatten_loops(doc_data["x12"], doc.delimeters)
+        doc.delimiters = X12Delimiters.from_list(doc_data["x12_delimiters"])
+        doc.flattened_list = doc._flatten_loops(doc_data["x12"], doc.delimiters)
         # pprint([(doc.flattened_list.index(seg), seg) for seg in doc.flattened_list])
         doc.data = doc.get_seg_loops(InterchangeEnvelope, doc.flattened_list)
         doc.raw_x12 = doc.as_x12()
@@ -415,14 +435,14 @@ class X12Document(EDI_Document, UserList):
         data_dict = tomlkit.loads(doc_data)
         return cls.from_dict(data_dict)
 
-    def _parse_delimeters(self):
+    def _parse_delimiters(self):
         """Returns delimiters from supposed valid x12 stored in self.raw_x12"""
         elem_term, elem_divider, seg_term = self.raw_x12[103:106]
-        return X12Delimeters(elem_term=elem_term, elem_divider=elem_divider, seg_term=seg_term)
+        return X12Delimiters(elem_term=elem_term, elem_divider=elem_divider, seg_term=seg_term)
 
     def _parse_x12_to_list(self) -> list[X12Segment]:
-        segments = self.raw_x12.split(self.delimeters.seg_term)
-        return [X12Segment.from_x12(seg_data=segment, delimeters=self.delimeters) for segment in segments if segment]
+        segments = self.raw_x12.split(self.delimiters.seg_term)
+        return [X12Segment.from_x12(seg_data=segment, delimiters=self.delimiters) for segment in segments if segment]
 
     def _validate_x12(self):
         assert True
@@ -434,7 +454,7 @@ class X12Document(EDI_Document, UserList):
         ]
         if soft:
             return attrs + [
-                self.delimeters,
+                self.delimiters,
                 self.raw_x12,
             ]
         return attrs
@@ -446,7 +466,7 @@ class X12Document(EDI_Document, UserList):
 
     def as_dict(self) -> dict:
         return {
-            "x12_delimeters": self.delimeters.as_list(),
+            "x12_delimiters": self.delimiters.as_list(),
             "x12": self.data,
         }
 

@@ -1,5 +1,5 @@
 {
-  "x12_delimeters": [
+  "x12_delimiters": [
     "*",
     ">",
     "~"

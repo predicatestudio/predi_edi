@@ -1,0 +1,361 @@
+{
+  "transaction_set_id": "850",
+  "components": [
+    {
+      "type": "segment",
+      "id": "st",
+      "required": true,
+      "max_use": 1,
+      "elements": [
+        {
+          "id": "trans_set_id",
+          "required": true
+        },
+        {
+          "id": "trans_set_ctrl_num",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "beg",
+      "required": true,
+      "max_use": 1,
+      "elements": [
+        {
+          "id": "trans_set_purpose_code",
+          "required": true
+        },
+        {
+          "id": "order_type",
+          "required": true
+        },
+        {
+          "id": "po_num",
+          "required": true
+        },
+        {
+          "id": "date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "ref",
+      "required": true,
+      "max_use": 0,
+      "elements": [
+        {
+          "id": "ref_id_qualifier",
+          "required": true,
+          "options": "CR"
+        },
+        {
+          "id": "customer_ref_num"
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "ref",
+      "required": false,
+      "max_use": 0,
+      "elements": [
+        {
+          "id": "re_id_qualifier",
+          "required": true,
+          "options": "PD"
+        },
+        {
+          "id": "promo_ref_num"
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "fob",
+      "required": false,
+      "max_use": 0,
+      "elements": [
+        {
+          "id": "ship_pay_method",
+          "required": true,
+          "options": [
+            "bp",
+            "cc",
+            "df",
+            "fo",
+            "pp",
+            "ps"
+          ]
+        },
+        {
+          "id": "trans_terms_qual_code",
+          "options": "01"
+        },
+        {
+          "id": "trans_terms_code",
+          "options": [
+            "cfr",
+            "cif",
+            "cip",
+            "cpt",
+            "daf",
+            "ddp",
+            "ddu",
+            "exw",
+            "fca",
+            "fob"
+          ]
+        },
+        {
+          "id": "loc_qual",
+          "options": "ov"
+        },
+        {
+          "id": "desc"
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "csj",
+      "required": true,
+      "max_use": 5,
+      "elements": [
+        {
+          "id": "sale_req_code",
+          "options": [
+            "n",
+            "y",
+            "+"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "dtm",
+      "required": false,
+      "max_use": 10,
+      "elements": [
+        {
+          "id": "dtm_qual",
+          "required": true,
+          "options": "063"
+        },
+        {
+          "id": "date"
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "dtm",
+      "required": false,
+      "max_use": 10,
+      "elements": [
+        {
+          "id": "dtm_qual",
+          "required": true,
+          "options": "064"
+        },
+        {
+          "id": "date"
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "pkg",
+      "required": false,
+      "max_use": 10,
+      "elements": [
+        {
+          "id": "item_desk_type",
+          "options": "F"
+        },
+        {
+          "id": "pack_characteristic_code",
+          "options": "CS"
+        },
+        {
+          "id": "desc"
+        }
+      ]
+    },
+    {
+      "type": "loop",
+      "id": "n9",
+      "required": true,
+      "repetition": 1000,
+      "loop": [
+        {
+          "type": "segment",
+          "id": "n9",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": "ref_id_qual",
+              "required": true,
+              "options": "L1"
+            },
+            {
+              "id": "ref_id"
+            }
+          ]
+        },
+        {
+          "type": "segment",
+          "id": "msg",
+          "required": true,
+          "max_use": 1000,
+          "elements": [
+            {
+              "id": "message_text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "loop",
+      "id": "n1",
+      "required": true,
+      "repetition": 1,
+      "loop": [
+        {
+          "type": "segment",
+          "id": "n1",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": "entity_id_code",
+              "required": true,
+              "options": "ST"
+            },
+            {
+              "id": "id_code_qual",
+              "required": true,
+              "options": [
+                "15",
+                "92",
+                "ZZ"
+              ]
+            },
+            {
+              "id": "id_code",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "loop",
+      "id": "po1",
+      "required": true,
+      "repetition": 100000,
+      "loop": [
+        {
+          "type": "segment",
+          "id": "po1",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": "assigned_id",
+              "required": true
+            },
+            {
+              "id": "order_quant",
+              "required": true
+            },
+            {
+              "id": "uom",
+              "required": true,
+              "options": [
+                "CA",
+                "EA"
+              ]
+            },
+            {
+              "id": "unit_price",
+              "required": true
+            },
+            {
+              "id": "unit_price_basis_code",
+              "required": true,
+              "options": [
+                "PE",
+                "RE"
+              ]
+            },
+            {
+              "id": "prod_id_qual",
+              "required": true,
+              "options": [
+                "BP",
+                "EN",
+                "IB",
+                "UA",
+                "UK",
+                "UP",
+                "VN"
+              ]
+            },
+            {
+              "id": "prod_id",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "loop",
+      "id": "ctt",
+      "required": true,
+      "repetition": 1,
+      "loop": [
+        {
+          "type": "segment",
+          "id": "ctt",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": "line_item_count",
+              "required": true
+            },
+            {
+              "id": "hash_total",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "segment",
+      "id": "se",
+      "required": true,
+      "max_use": 1,
+      "elements": [
+        {
+          "id": "seg_count",
+          "required": true
+        },
+        {
+          "id": "trans_set_ctrl_num",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

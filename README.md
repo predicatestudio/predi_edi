@@ -62,7 +62,7 @@ In [12]: # dump to a file, nearly identical to builtin json lib
 
 In [13]: print(dumps(doc, encoder=j_encoder))
 {
-  "x12_delimeters": [
+  "x12_delimiters": [
     "*",
     ">",
     "~"
