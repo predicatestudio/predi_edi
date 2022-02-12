@@ -188,7 +188,6 @@ class X12_Loop(ABC, UserList, X12_Utils):
         for transaction in [loop.get_transactions() for loop in self.subloops if isinstance(loop, X12_Loop)]:
             self.transactions += transaction
 
-
     def _validate_trailer(self):
         if not self.num_subloops == len(self.subloops):
             raise X12TrailerValidationError(
@@ -387,7 +386,7 @@ class X12Document(EDI_Document, UserList):
     raw_x12: str
     data: list[X12_Loop]
     flattened_list: list[X12Segment]
-    transactions: list[TransactionSet]
+    transactions: list[TransactionSet] = []
 
     @classmethod
     def from_x12(cls, doc_data: str) -> "X12Document":
@@ -396,7 +395,8 @@ class X12Document(EDI_Document, UserList):
         doc.delimiters = doc._parse_delimiters()
         doc.flattened_list = doc._parse_x12_to_list()
         doc.data = doc.get_seg_loops(InterchangeEnvelope, doc.flattened_list)
-        doc.transactions = [loop.get_transactions() for loop in doc.data]
+        for loop in doc.data:
+            doc.transactions += loop.get_transactions()
 
         doc._validate_x12()
         return doc

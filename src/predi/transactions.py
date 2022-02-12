@@ -140,46 +140,72 @@ class TransactionTemplate(EDITemplateBaseModel):
     transaction_set_id: str
     components: list[Component]
 
-    @staticmethod
-    def some_map(mapping_loop, segments)
+    def map_to_template(
+        self, template_loop: list[Component], transaction_segments: list[X12Segment]
+    ) -> tuple[list[tuple]|list, list[X12Segment]]:
+        if transaction_segments[0].seg_id == 'CTT':
+            import ipdb; ipdb.set_trace()
+        # print()
+        # pprint(transaction_segments)
+        # pprint([el.id for el in template_loop])
+        transaction_has_segments = bool(transaction_segments)
+        if not transaction_has_segments:
+            return (None, None)
+        
+        # print(f"{seg=}")
+        # print(type(template_loop[0]))
+        # print()
+        loop_mapping: list[tuple|list] = []
+        for loop_component in template_loop:
+            loop_component_is_viable = True
+            seg = transaction_segments.pop(0)
+            while loop_component_is_viable and transaction_has_segments:
+                
+                if seg.seg_id == "BEG":
+                    import ipdb; ipdb.set_trace()
+                # print(f"{seg=}")
+                # print(f"{loop_component.id=}")
+                if seg.seg_id.lower() == loop_component.id:
+                    if isinstance(loop_component, Segment):
+                        loop_mapping.append((seg, loop_component))
+                        if transaction_segments:
+                            seg = transaction_segments.pop(0)
+                        else:
+                            transaction_has_segments = False
+                    elif isinstance(loop_component, Loop):
+                        # print(seg)
+                        if seg.seg_id == "CTT":
+                            import ipdb; ipdb.set_trace()
+                        # print(loop_component.loop[0])
+                        transaction_segments = [seg, *transaction_segments]
+                        # print(f"{transaction_segments=}")
+                        subloop_mapping, transaction_segments = self.map_to_template(loop_component.loop, transaction_segments)
+                        
+                        # print(subloop_mapping)
+                        loop_mapping.append(subloop_mapping)
+                        if transaction_has_segments := bool(transaction_segments):
+                            seg = transaction_segments.pop(0)
+
+
+                else:
+                    loop_component_is_viable = False
+                    # if transaction_has_segments:
+                    transaction_segments = [seg, *transaction_segments]
+        return (loop_mapping, transaction_segments)
 
     def parse(self, t: TransactionSet | list[TransactionSet]) -> list:
+        # if not t:
+        #     return None
         if isinstance(t, list):
             return [self.parse(trans) for trans in t]
-        mapping = []
-        seg = t.pop(0)
-        for component in self.components:
-            component_is_viable, transaction_has_segments = True, True
-            while component_is_viable and transaction_has_segments:
-                if seg.seg_id.lower() == component.id:
-                    if isinstance(component, Segment):
-                        mapping.append((seg, component))
-                        if t:
-                            seg = t.pop(0)
-                        else: 
-                            transaction_has_segments = False
-                    elif isinstance(component, Loop):
-                        loop_mapping = []
-                        for loop_component in component.loop:
-                            loop_component_is_viable = True
-                            while loop_component_is_viable and transaction_has_segments:
-                                if seg.seg_id.lower() == loop_component.id:
-                                    if isinstance(loop_component, Segment):
-                                        loop_mapping.append((seg, loop_component))
-                                        if t:
-                                            seg = t.pop(0)
-                                        else: 
-                                            transaction_has_segments = False
-                                else:
-                                    loop_component_is_viable = False
-                        mapping.append(loop_mapping)
-                else:
-                    component_is_viable = False
+        # pprint(t)
+        mapping, _ = self.map_to_template(self.components, t.subloops)
 
-        
+        return mapping
+
         # class Temp:
         #     def __init__(self, comps):
-        #         self.comps = comps         
+        #         self.comps = comps
         #         self.comp = self.comps.pop(0)
         #         self.mapping = []
         # obj = Temp(self.components)
@@ -198,7 +224,6 @@ class TransactionTemplate(EDITemplateBaseModel):
         #     match_component(seg, obj)
 
         pprint(mapping)
-
 
     def toml(self, indent: int = 0) -> TOMLDocument:
         """Returns a formatted TOMLDocument for storage, sharing, and human readability."""
@@ -330,9 +355,16 @@ def main():
     x12 = core.load(Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/amz_ex.edi").open("r"))
     template = TransactionTemplate.load(Path("temp.toml"))
     # test_fixtures(template)
-    template.parse(x12.transactions)
-    # print(template.parse(x12))
+    # pprint(template.components)
+    parsed = template.parse(x12.transactions)
+    pprint(parsed)
 
+def quickprint(parsed):
+    for p in parsed:
+        if isinstance(p, list):
+            quickprint(p)
+        else:
+            pprint(p[1].id)
 
 if __name__ == "__main__":
     main()
