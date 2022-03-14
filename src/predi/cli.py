@@ -74,5 +74,6 @@ def transaction_cli():
 
 cli.add_command(transaction_cli)
 
+
 if __name__ == "__main__":
     main()

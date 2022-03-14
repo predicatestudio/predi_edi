@@ -2,6 +2,30 @@
 
 transaction_set_id = "850"
 
+[export_rules]
+trans_set_id = "transaction_set_id"
+customer_ref_num = "components.customer_ref_num"
+order_type = "components.order_type"
+po_num = "components.po_num"
+po_date = "components.po_date"
+ship_to = "components.ship_to.id_code_qual"
+no_deliver_after = "components.no_deliver_after"
+no_deliver_before = "components.no_deliver_before"
+sale_req_code = "components.sale_req_code"
+seg_count = "components.seg_count"
+trans_set_ctrl_num = "components.trans_set_ctrl_num"
+trans_set_purpose_code = "components.trans_set_purpose_code"
+line_item_count = "components.transaction_totals.line_item_count"
+
+[export_rules.item_data]
+KEY = "item_data"
+assigned_id = "components.assigned_id"
+order_quant = "components.order_quant"
+unit_price = "components.unit_price"
+unit_price_basis_code = "components.unit_price_basis_code"
+uom = "components.uom"
+upc_ean_consumer_pack_code = "components.upc_ean_consumer_pack_code"
+
 [[components]]
 type = "segment"
 id = "st"
@@ -35,14 +59,14 @@ max_use = 1
   required = true
 
   [[components.elements]]
-  id = "date"
+  [[components.elements]]
+  id = "po_date"
   required = true
 
 [[components]]
 type = "segment"
 id = "ref"
 required = true
-max_use = 0
 
   [[components.elements]]
   id = "ref_id_qualifier"
@@ -50,27 +74,27 @@ max_use = 0
   options = "CR"
 
   [[components.elements]]
-  id = "customer_ref_num"
+  id = "reference_id"
+  qualifier = "ref_id_qualifier"
+  quality = {CR = "customer_ref_num"}
 
 [[components]]
 type = "segment"
 id = "ref"
-required = false
-max_use = 0
 
   [[components.elements]]
-  id = "re_id_qualifier"
+  id = "ref_id_qualifier"
   required = true
   options = "PD"
 
   [[components.elements]]
-  id = "promo_ref_num"
+  id = "reference_id"
+  qualifier = "ref_id_qualifier"
+  quality = {CR = "promo_ref_num"}
 
 [[components]]
 type = "segment"
 id = "fob"
-required = false
-max_use = 0
 
   [[components.elements]]
   id = "ship_pay_method"
@@ -105,7 +129,6 @@ max_use = 5
 [[components]]
 type = "segment"
 id = "dtm"
-required = false
 max_use = 10
 
   [[components.elements]]
@@ -115,11 +138,15 @@ max_use = 10
 
   [[components.elements]]
   id = "date"
+  qualifier = "dtm_qual"
+
+  [components.elements.quality]
+      064 = "no_deliver_after"
+      063 = "no_deliver_before"
 
 [[components]]
 type = "segment"
 id = "dtm"
-required = false
 max_use = 10
 
   [[components.elements]]
@@ -129,11 +156,15 @@ max_use = 10
 
   [[components.elements]]
   id = "date"
+  qualifier = "dtm_qual"
+
+  [components.elements.quality]
+        064 = "no_deliver_after"
+        063 = "no_deliver_before"
 
 [[components]]
 type = "segment"
 id = "pkg"
-required = false
 max_use = 10
 
   [[components.elements]]
@@ -152,6 +183,7 @@ type = "loop"
 id = "n9"
 required = true
 repetition = 1000
+name = "reference_id"
 
   [[components.loop]]
   type = "segment"
@@ -166,6 +198,8 @@ repetition = 1000
 
     [[components.loop.elements]]
     id = "ref_id"
+    qualifier = "ref_id_qual"
+    quality = {L1 = "letters_or_notes"}
 
   [[components.loop]]
   type = "segment"
@@ -181,7 +215,10 @@ repetition = 1000
 type = "loop"
 id = "n1"
 required = true
+export_key = "entity_id_code"
+export_as = {ST = "ship_to"}
 repetition = 1
+name = "name"
 
   [[components.loop]]
   type = "segment"
@@ -194,6 +231,7 @@ repetition = 1
     required = true
     options = "ST"
 
+    [[components.loop.elements]]
     [[components.loop.elements]]
     id = "id_code_qual"
     required = true
@@ -208,6 +246,7 @@ type = "loop"
 id = "po1"
 required = true
 repetition = 100000
+name = "item_data"
 
   [[components.loop]]
   type = "segment"
@@ -245,12 +284,23 @@ repetition = 100000
     [[components.loop.elements]]
     id = "prod_id"
     required = true
+    qualifier = "prod_id_qual"
+
+    [components.loop.elements.quality]
+                BP = "buyers_part_num"
+                EN = "ean"
+                IB = "isbn"
+                UA = "upc_ean_case_code"
+                UK = "upc_ean_ship_container_code"
+                UP = "upc_ean_consumer_pack_code"
+                VN = "vendors_item_num"
 
 [[components]]
 type = "loop"
 id = "ctt"
 required = true
 repetition = 1
+name = "transaction_totals"
 
   [[components.loop]]
   type = "segment"
@@ -279,3 +329,4 @@ max_use = 1
   [[components.elements]]
   id = "trans_set_ctrl_num"
   required = true
+  multiple = true
