@@ -1,7 +1,7 @@
 # This is a generated TOML EDI Specification
 
 transaction_set_id = "850"
-transaction_map = ''
+transaction_map    = ''
 
 
 [export_rules]
@@ -158,7 +158,7 @@ transaction_map = ''
       064 = "no_deliver_after"
       063 = "no_deliver_before"
 
-[[components]]
+  [[components]]
     type    = "segment"
     id      = "dtm"
     max_use = 10
@@ -176,166 +176,166 @@ transaction_map = ''
         064 = "no_deliver_after"
         063 = "no_deliver_before"
 
-[[components]]
-  type    = "segment"
-  id      = "pkg"
-  max_use = 10
+    [[components]]
+      type    = "segment"
+      id      = "pkg"
+      max_use = 10
 
-  [[components.elements]]
-    id      = "item_desk_type"
-    options = "F"
+      [[components.elements]]
+        id      = "item_desk_type"
+        options = "F"
 
-  [[components.elements]]
-    id      = "pack_characteristic_code"
-    options = "CS"
+      [[components.elements]]
+        id      = "pack_characteristic_code"
+        options = "CS"
 
-  [[components.elements]]
-    id = "desc"
+      [[components.elements]]
+        id = "desc"
 
-[[components]]
-  type       = "loop"
-  id         = "n9"
-  required   = true
-  repetition = 1000
-  name       = "reference_id"
+    [[components]]
+      type       = "loop"
+      id         = "n9"
+      required   = true
+      repetition = 1000
+      name       = "reference_id"
 
-  [[components.loop]]
-    type     = "segment"
-    id       = "n9"
-    required = true
-    max_use  = 1
-
-    [[components.loop.elements]]
-      id       = "ref_id_qual"
-      required = true
-      options  = "L1"
-
-    [[components.loop.elements]]
-      id        = "ref_id"
-      qualifier = "ref_id_qual"
-      quality   = { L1 = "letters_or_notes" }
-
-  [[components.loop]]
-    type     = "segment"
-    id       = "msg"
-    required = true
-    max_use  = 1000
-
-    [[components.loop.elements]]
-      id       = "message_text"
-      required = true
-
-[[components]]
-  type       = "loop"
-  id         = "n1"
-  required   = true
-  export_key = "entity_id_code"
-  export_as  = { ST = "ship_to" }
-  repetition = 1
-  name       = "name"
-
-  [[components.loop]]
-    type     = "segment"
-    id       = "n1"
-    required = true
-    max_use  = 1
-
-    [[components.loop.elements]]
-      id       = "entity_id_code"
-      required = true
-      options  = "ST"
-
-    [[components.loop.elements]]
-    [[components.loop.elements]]
-      id       = "id_code_qual"
-      required = true
-      options  = ["15", "92", "ZZ"]
-
-      [components.loop.elements.mapping]
-        15 = "standard_address_num"
-        92 = "assigned_by_buyer"
-        ZZ = "mutually_defined"
-
-    [[components.loop.elements]]
-      id       = "id_code"
-      required = true
-
-[[components]]
-    type       = "loop"
-    id         = "po1"
-    required   = true
-    repetition = 100000
-    name       = "item_data"
-
-    [[components.loop]]
-      type     = "segment"
-      id       = "po1"
-      required = true
-      max_use  = 1
-
-      [[components.loop.elements]]
-        id       = "assigned_id"
+      [[components.loop]]
+        type     = "segment"
+        id       = "n9"
         required = true
+        max_use  = 1
 
-      [[components.loop.elements]]
-        id       = "order_quant"
+        [[components.loop.elements]]
+          id       = "ref_id_qual"
+          required = true
+          options  = "L1"
+
+        [[components.loop.elements]]
+          id        = "ref_id"
+          qualifier = "ref_id_qual"
+          quality   = { L1 = "letters_or_notes" }
+
+      [[components.loop]]
+        type     = "segment"
+        id       = "msg"
         required = true
+        max_use  = 1000
 
-      [[components.loop.elements]]
-        id       = "uom"
-        required = true
-        options  = ["CA", "EA"]
+        [[components.loop.elements]]
+          id       = "message_text"
+          required = true
 
-      [[components.loop.elements]]
-        id       = "unit_price"
-        required = true
-
-      [[components.loop.elements]]
-        id       = "unit_price_basis_code"
-        required = true
-        options  = ["PE", "RE"]
-
-      [[components.loop.elements]]
-        id       = "prod_id_qual"
-        required = true
-        options  = ["BP", "EN", "IB", "UA", "UK", "UP", "VN"]
-
-      [[components.loop.elements]]
-        id        = "prod_id"
-        required  = true
-        qualifier = "prod_id_qual"
-
-        [components.loop.elements.quality]
-          BP = "buyers_part_num"
-          EN = "ean"
-          IB = "isbn"
-          UA = "upc_ean_case_code"
-          UK = "upc_ean_ship_container_code"
-          UP = "upc_ean_consumer_pack_code"
-          VN = "vendors_item_num"
-
-[[components]]
+      [[components]]
         type       = "loop"
-        id         = "ctt"
+        id         = "n1"
         required   = true
+        export_key = "entity_id_code"
+        export_as  = { ST = "ship_to" }
         repetition = 1
-        name       = "transaction_totals"
+        name       = "name"
 
         [[components.loop]]
           type     = "segment"
-          id       = "ctt"
+          id       = "n1"
           required = true
           max_use  = 1
 
           [[components.loop.elements]]
-            id       = "line_item_count"
+            id       = "entity_id_code"
             required = true
+            options  = "ST"
 
           [[components.loop.elements]]
-            id       = "hash_total"
+          [[components.loop.elements]]
+            id       = "id_code_qual"
+            required = true
+            options  = ["15", "92", "ZZ"]
+
+            [components.loop.elements.mapping]
+              15 = "standard_address_num"
+              92 = "assigned_by_buyer"
+              ZZ = "mutually_defined"
+
+          [[components.loop.elements]]
+            id       = "id_code"
             required = true
 
-[[components]]
+        [[components]]
+          type       = "loop"
+          id         = "po1"
+          required   = true
+          repetition = 100000
+          name       = "item_data"
+
+          [[components.loop]]
+            type     = "segment"
+            id       = "po1"
+            required = true
+            max_use  = 1
+
+            [[components.loop.elements]]
+              id       = "assigned_id"
+              required = true
+
+            [[components.loop.elements]]
+              id       = "order_quant"
+              required = true
+
+            [[components.loop.elements]]
+              id       = "uom"
+              required = true
+              options  = ["CA", "EA"]
+
+            [[components.loop.elements]]
+              id       = "unit_price"
+              required = true
+
+            [[components.loop.elements]]
+              id       = "unit_price_basis_code"
+              required = true
+              options  = ["PE", "RE"]
+
+            [[components.loop.elements]]
+              id       = "prod_id_qual"
+              required = true
+              options  = ["BP", "EN", "IB", "UA", "UK", "UP", "VN"]
+
+            [[components.loop.elements]]
+              id        = "prod_id"
+              required  = true
+              qualifier = "prod_id_qual"
+
+              [components.loop.elements.quality]
+                BP = "buyers_part_num"
+                EN = "ean"
+                IB = "isbn"
+                UA = "upc_ean_case_code"
+                UK = "upc_ean_ship_container_code"
+                UP = "upc_ean_consumer_pack_code"
+                VN = "vendors_item_num"
+
+            [[components]]
+              type       = "loop"
+              id         = "ctt"
+              required   = true
+              repetition = 1
+              name       = "transaction_totals"
+
+              [[components.loop]]
+                type     = "segment"
+                id       = "ctt"
+                required = true
+                max_use  = 1
+
+                [[components.loop.elements]]
+                  id       = "line_item_count"
+                  required = true
+
+                [[components.loop.elements]]
+                  id       = "hash_total"
+                  required = true
+
+              [[components]]
                 type     = "segment"
                 id       = "se"
                 required = true

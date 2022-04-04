@@ -1,14 +1,13 @@
 from pathlib import Path
 from pprint import pprint
 
-from predi.transactions.specs.amz_850 import Amazon850Spec
+# from .specs.amz_850 import amazon850Spec
 
 from .models import PrediTransactionModel
 from .specs import TransactionTemplate, X12TransactionList
 
-PrediTransactionModel
 # REAL __init__ start
-TransactionTemplate
+
 
 
 def main():
@@ -22,7 +21,8 @@ def main():
     # tomlkit.dump(model2.schema(as_toml=True), raw_model.open("w"))
     model = PrediTransactionModel.from_toml(raw_model)
     spec = TransactionTemplate.load(raw_spec)
-    print(Amazon850Spec)
+    from predi.transactions.specs.amz_850 import amazon850spec
+    print(amazon850spec)
     # pprint(model2.__fields__)
     # pprint(model.__fields__)
 
