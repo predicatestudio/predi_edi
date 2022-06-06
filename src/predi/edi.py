@@ -3,6 +3,7 @@ import json
 import logging
 from abc import ABC, abstractclassmethod, abstractmethod
 from collections import UserList
+from pathlib import Path
 from typing import Optional, Union
 
 import tomlkit
@@ -492,7 +493,7 @@ class EDI_Decoder(ABC):
 
 
 class X12Decoder(EDI_Decoder):
-    def decode(self, raw_edi: str) -> X12Document:
+    def decode(self, raw_edi: str|Path) -> X12Document:
         edi_doc = X12Document.from_x12(raw_edi)
         return edi_doc
 
@@ -596,7 +597,7 @@ class Standards(enum.Enum):
     x12 = X12Standard()
     json = PrEDI_JSONStandard()
     yaml = PrEDI_YAMLStandard()
-    toml = PrEDI_TOMLStandard()
+    # toml = PrEDI_TOMLStandard()
 
 
 def get_standard(edi_lang: str):

@@ -1,28 +1,33 @@
 from pathlib import Path
 from pprint import pprint
+import json
 
+from predi.edi import X12Decoder
+from predi.transactions.maps.x12 import X12_Mapper
 # from .specs.amz_850 import amazon850Spec
 
 from .models import PrediTransactionModel
-from .specs import TransactionTemplate, X12TransactionList
+from .maps import X12BasePredimaps
 
 # REAL __init__ start
 
 
 
 def main():
+    from predi.transactions.maps.amz_850 import amazon850map
     X12_PATH = "/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/amz_ex.edi"
-    SPEC_PATH = "src/predi/transactions/specs/amz_850.toml"
-    MODEL_PATH = "src/predi/transactions/models/base_purchase_order.toml"
-    raw_input = Path(X12_PATH).read_text()
-    raw_spec = Path(SPEC_PATH)
-    raw_model = Path(MODEL_PATH)
-    # model2 = base_models.BasePurchaseOrder
+    raw_input = Path(X12_PATH).read_text()    # model2 = base_models.BasePurchaseOrder
+    decoder = X12Decoder()
+    x12_doc=decoder.decode(raw_input)
+    mapper=X12_Mapper(amazon850map)
+    order = mapper.parse(x12_doc)
+    pprint(order)
     # tomlkit.dump(model2.schema(as_toml=True), raw_model.open("w"))
-    model = PrediTransactionModel.from_toml(raw_model)
-    spec = TransactionTemplate.load(raw_spec)
-    from predi.transactions.specs.amz_850 import amazon850spec
-    print(amazon850spec)
+    
+    Path("temp.json").touch()
+    with Path("temp.json").open("w") as tempf:
+        
+        json.dump(json.loads(amazon850map.json(exclude_defaults=True)), tempf, indent=2)
     # pprint(model2.__fields__)
     # pprint(model.__fields__)
 

@@ -2,9 +2,8 @@ from enum import Enum
 from turtle import title
 
 from ...utils import PrediBaseModel
-from .old_specs import TransactionTemplate
 from . import x12
-from .x12 import X12TransactionList
+from .x12 import X12BasePredimaps
 
 class BaseSpec(PrediBaseModel):
     ...

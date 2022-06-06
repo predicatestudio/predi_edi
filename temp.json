@@ -1,0 +1,463 @@
+{
+  "author": "amazon",
+  "title": "amz_850",
+  "version": "4010",
+  "version_date": "2017-08-10",
+  "predimap_version": "0.0.1",
+  "components": [
+    {
+      "id": "ST",
+      "name": "transaction_set_header",
+      "required": true,
+      "max_use": 1,
+      "elements": [
+        {
+          "id": 1,
+          "name": "transaction_set_identifier_code",
+          "required": true,
+          "options": {
+            "values": {
+              "850": "purchase_order"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "name": "transaction_set_control_number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "BEG",
+      "name": "beginning_segment_for_purchase_order",
+      "required": true,
+      "max_use": 1,
+      "elements": [
+        {
+          "id": 1,
+          "name": "transaction_set_purpose_code",
+          "options": {
+            "values": {
+              "00": "original"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 2,
+          "name": "purchase_order_type_code",
+          "required": true,
+          "options": {
+            "values": {
+              "CN": "consigned_order",
+              "NE": "new_order",
+              "NP": "new_product_information",
+              "RO": "rush_order"
+            }
+          }
+        },
+        {
+          "id": 3,
+          "name": "purchase_order_number",
+          "required": true
+        },
+        {
+          "id": 4,
+          "name": "date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "REF",
+      "name": "reference_identification_01",
+      "required": true,
+      "elements": [
+        {
+          "id": 1,
+          "name": "reference_identification_qualifier",
+          "required": true,
+          "reference_tag": "reference_identification_qualifier_1",
+          "options": {
+            "values": {
+              "CR": "customer_reference_number",
+              "PD": "promotion_number"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 2,
+          "name": "reference_identification",
+          "required": true,
+          "qualifier_tag": "reference_identification_qualifier_1"
+        }
+      ]
+    },
+    {
+      "id": "FOB",
+      "name": "fob_related_instructions",
+      "elements": [
+        {
+          "id": 1,
+          "name": "shipping_method_of_payment",
+          "required": true,
+          "options": {
+            "values": {
+              "BP": "Paid by Buyer",
+              "CC": "Collect",
+              "DF": "Defined by Buyer and Seller",
+              "FO": "FOB Port of Call",
+              "PP": "Prepaid (by Seller)",
+              "PS": "Paid by Seller)"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 2,
+          "name": "transportation_terms_qualifier",
+          "reference_tag": "transportation_terms_qualifier",
+          "options": {
+            "values": {
+              "01": "incoterms"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 3,
+          "name": "transportation_terms",
+          "options": {
+            "values": {
+              "CFR": "Cost and Freight",
+              "CIF": "Cost, Insurance, and Freight",
+              "CIP": "Carriage and Insurance Paid To",
+              "CPT": "Carriage Paid To",
+              "DAF": "Delivered at Frontier",
+              "DDP": "Delivered Duty Paid",
+              "DDU": "Deliver Duty Unpaid",
+              "EXW": "Ex Works",
+              "FCA": "Free Carrier",
+              "FOB": "Free on Board"
+            },
+            "exhaustive": false
+          },
+          "qualifier_tag": "transportation_terms_qualifier"
+        },
+        {
+          "id": 4,
+          "name": "location_qualifier",
+          "reference_tag": "location_qualifier",
+          "options": {
+            "values": {
+              "OV": "on_vessel"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 5,
+          "name": "location_description",
+          "qualifier_tag": "location_qualifier"
+        }
+      ]
+    },
+    {
+      "id": "CSH",
+      "name": "sales_requirements",
+      "required": true,
+      "max_use": 5,
+      "elements": [
+        {
+          "id": 1,
+          "name": "sales_requirement_code",
+          "required": true,
+          "options": {
+            "values": {
+              "N": "no_back_order",
+              "Y": "back_order_if_out_of_stock"
+            },
+            "exhaustive": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "DTM",
+      "name": "datetime_reference_01",
+      "max_use": 20,
+      "elements": [
+        {
+          "id": 1,
+          "name": "date_time_qualifier_01",
+          "required": true,
+          "options": {
+            "values": {
+              "063": "do_not_deliver_after",
+              "064": "do_not_deliver_before"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 2,
+          "name": "date",
+          "required": true,
+          "qualifier_tag": "date_time_qualifier_01"
+        }
+      ]
+    },
+    {
+      "id": "PKG",
+      "name": "marking_packaging_loading",
+      "max_use": 200,
+      "elements": [
+        {
+          "id": 1,
+          "name": "item_description_type",
+          "required": true,
+          "options": {
+            "values": {
+              "F": "free_form"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 2,
+          "name": "packaging_characteristic_code",
+          "required": true,
+          "options": {
+            "values": {
+              "CS": "container_shape"
+            },
+            "exhaustive": false
+          }
+        },
+        {
+          "id": 5,
+          "name": "package_description",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "N9",
+      "name": "note_loop",
+      "required": true,
+      "max_use": 1000,
+      "components": [
+        {
+          "id": "N9",
+          "name": "reference_identification",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": 1,
+              "name": "reference_identification_qualifier",
+              "required": true,
+              "reference_tag": "reference_identification_qualifier",
+              "options": {
+                "values": {
+                  "L1": "letters_or_notes"
+                },
+                "exhaustive": false
+              }
+            },
+            {
+              "id": 2,
+              "name": "reference_identification",
+              "qualifier_tag": "reference_identification_qualifier"
+            }
+          ]
+        },
+        {
+          "id": "N9",
+          "name": "message_text",
+          "required": true,
+          "max_use": 1000,
+          "elements": [
+            {
+              "id": 1,
+              "name": "free_form_message_text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "name": "name_loop",
+      "required": true,
+      "max_use": 200,
+      "components": [
+        {
+          "id": "N1",
+          "name": "name",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": 1,
+              "name": "entity_identifier_code",
+              "required": true,
+              "options": {
+                "values": {
+                  "ST": "ship_to"
+                },
+                "exhaustive": false
+              }
+            },
+            {
+              "id": 2,
+              "name": "identification_code_qualifier",
+              "required": true,
+              "reference_tag": "identification_code_qualifier",
+              "options": {
+                "values": {
+                  "15": "Standard Address Number",
+                  "92": "Assigned by Buyer or Buyer's Agent",
+                  "ZZ": "Mutually Defined"
+                },
+                "exhaustive": false
+              }
+            },
+            {
+              "id": 3,
+              "name": "identification_code",
+              "required": true,
+              "qualifier_tag": "identification_code_qualifier"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PO1",
+      "name": "line_item_loop",
+      "required": true,
+      "max_use": 100000,
+      "components": [
+        {
+          "id": "PO1",
+          "name": "baseline_item_data",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": 1,
+              "name": "assigned_identification",
+              "required": true
+            },
+            {
+              "id": 2,
+              "name": "quantity_ordered",
+              "required": true
+            },
+            {
+              "id": 3,
+              "name": "unit_or_basis_for_measure_code",
+              "required": true,
+              "options": {
+                "values": {
+                  "CA": "cases",
+                  "EA": "each"
+                },
+                "exhaustive": false
+              }
+            },
+            {
+              "id": 4,
+              "name": "unit_price",
+              "required": true
+            },
+            {
+              "id": 5,
+              "name": "basis_of_unit_price_code",
+              "required": true,
+              "options": {
+                "values": {
+                  "PE": "per_each",
+                  "RE": "retail_price_per_each"
+                },
+                "exhaustive": false
+              }
+            },
+            {
+              "id": 6,
+              "name": "product_service_id_qualifier",
+              "required": true,
+              "reference_tag": "product_service_id_qualifier",
+              "options": {
+                "values": {
+                  "BP": "buyers_part_number",
+                  "EN": "ean",
+                  "IB": "isbn",
+                  "UA": "upc_ean_case_code",
+                  "UK": "upc_ean_shipping_container_code",
+                  "UP": "upc_ean_consumer_package_code",
+                  "VN": "vendor_item_number"
+                },
+                "exhaustive": false
+              }
+            },
+            {
+              "id": 7,
+              "name": "product_service_id",
+              "required": true,
+              "qualifier_tag": "product_service_id_qualifier"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CTT",
+      "name": "transaction_totals_loop",
+      "required": true,
+      "max_use": 1,
+      "components": [
+        {
+          "id": "CTT",
+          "name": "transaction_totals",
+          "required": true,
+          "max_use": 1,
+          "elements": [
+            {
+              "id": 1,
+              "name": "number_of_line_items",
+              "required": true
+            },
+            {
+              "id": 2,
+              "name": "hash_total",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SE",
+      "name": "transaction_set_trailer",
+      "required": true,
+      "max_use": 1,
+      "elements": [
+        {
+          "id": 1,
+          "name": "number_of_included_segments",
+          "required": true
+        },
+        {
+          "id": 2,
+          "name": "transaction_set_control_number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

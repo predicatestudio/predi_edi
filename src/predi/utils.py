@@ -9,12 +9,12 @@ from tomlkit.toml_document import TOMLDocument
 class PrediBaseModel(BaseModel):
     """A Predi specific wrapping of Pydantic's BaseModel"""
 
-    @classmethod
-    def schema(cls, as_toml: bool = False, **kwargs) -> dict[str, Any]:
-        """Wraps Pydantic's BaseModel .schema() with an added option to export as toml"""
-        if not as_toml:
-            return super().schema(**kwargs)
-        return TomlDoc.from_dict(super().schema(**kwargs))
+    # @classmethod
+    # def schema(cls, as_toml: bool = False, **kwargs) -> dict[str, Any]:
+    #     """Wraps Pydantic's BaseModel .schema() with an added option to export as toml"""
+    #     if not as_toml:
+    #         return super().schema(**kwargs)
+    #     return TomlDoc.from_dict(super().schema(**kwargs))
 
     @validator("*")
     def convert_toml_items(cls, v):
