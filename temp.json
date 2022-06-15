@@ -63,7 +63,10 @@
           "required": true
         },
         {
-          "id": 4,
+          "id": 4
+        },
+        {
+          "id": 5,
           "name": "date",
           "required": true
         }
@@ -78,7 +81,6 @@
           "id": 1,
           "name": "reference_identification_qualifier",
           "required": true,
-          "reference_tag": "reference_identification_qualifier_1",
           "options": {
             "values": {
               "CR": "customer_reference_number",
@@ -89,9 +91,9 @@
         },
         {
           "id": 2,
-          "name": "reference_identification",
+          "name": "customer_reference_number",
           "required": true,
-          "qualifier_tag": "reference_identification_qualifier_1"
+          "qualifier_tag": "reference_identification_qualifier"
         }
       ]
     },
@@ -118,7 +120,6 @@
         {
           "id": 2,
           "name": "transportation_terms_qualifier",
-          "reference_tag": "transportation_terms_qualifier",
           "options": {
             "values": {
               "01": "incoterms"
@@ -149,7 +150,6 @@
         {
           "id": 4,
           "name": "location_qualifier",
-          "reference_tag": "location_qualifier",
           "options": {
             "values": {
               "OV": "on_vessel"
@@ -203,7 +203,7 @@
         },
         {
           "id": 2,
-          "name": "date",
+          "name": "do_not_deliver_after",
           "required": true,
           "qualifier_tag": "date_time_qualifier_01"
         }
@@ -259,7 +259,6 @@
               "id": 1,
               "name": "reference_identification_qualifier",
               "required": true,
-              "reference_tag": "reference_identification_qualifier",
               "options": {
                 "values": {
                   "L1": "letters_or_notes"
@@ -293,6 +292,12 @@
       "id": "N1",
       "name": "name_loop",
       "required": true,
+      "nesting": {
+        "name": {
+          "reference_name": "entity_identifier_code"
+        },
+        "as_list": false
+      },
       "max_use": 200,
       "components": [
         {
@@ -313,10 +318,12 @@
               }
             },
             {
-              "id": 2,
+              "id": 2
+            },
+            {
+              "id": 3,
               "name": "identification_code_qualifier",
               "required": true,
-              "reference_tag": "identification_code_qualifier",
               "options": {
                 "values": {
                   "15": "Standard Address Number",
@@ -327,8 +334,8 @@
               }
             },
             {
-              "id": 3,
-              "name": "identification_code",
+              "id": 4,
+              "name": "Standard Address Number",
               "required": true,
               "qualifier_tag": "identification_code_qualifier"
             }
@@ -340,6 +347,9 @@
       "id": "PO1",
       "name": "line_item_loop",
       "required": true,
+      "nesting": {
+        "name": "line_items"
+      },
       "max_use": 100000,
       "components": [
         {
@@ -391,7 +401,6 @@
               "id": 6,
               "name": "product_service_id_qualifier",
               "required": true,
-              "reference_tag": "product_service_id_qualifier",
               "options": {
                 "values": {
                   "BP": "buyers_part_number",
@@ -407,7 +416,7 @@
             },
             {
               "id": 7,
-              "name": "product_service_id",
+              "name": "upc_ean_consumer_package_code",
               "required": true,
               "qualifier_tag": "product_service_id_qualifier"
             }

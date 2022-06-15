@@ -21,7 +21,7 @@ def test_load_and_dump():
                             sample_doc = load(sf, decoder=s_standard.decoder)
                             fixture_doc = load(ff, decoder=f_standard.decoder)
                             for s_attr, f_attr in zip(sample_doc.get_defining_attributes(soft=True), fixture_doc.get_defining_attributes(soft=True)):
-                                try: 
+                                try:
                                     assert s_attr == f_attr
                                 except AssertionError as e:
                                     print(s_standard.name)

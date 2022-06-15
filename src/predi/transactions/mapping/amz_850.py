@@ -1,8 +1,6 @@
 from datetime import date, datetime
 
-from predi.transactions.maps import x12
-from predi.transactions.maps.x12 import CodedOptions, Element, Loop, QualifiedElement, Segment
-from pydantic import PrivateAttr
+from predi.transactions.mapping.x12 import BlankElement, CodedOptions, Element, Loop, NestingRules, QualifiedElement, Reference, Segment
 
 from . import X12BasePredimaps
 
@@ -50,7 +48,8 @@ amz_850_components = [
                         "NE": "new_order",
                         "NP": "new_product_information",
                         "RO": "rush_order",
-                    }
+                    },
+                    # decode=False
                 ),
             ),
             Element(
@@ -59,8 +58,9 @@ amz_850_components = [
                 required=True,
                 options=None,
             ),
+            BlankElement(id=4),
             Element(
-                id=4,
+                id=5,
                 name="date",
                 required=True,
                 options=None,
@@ -78,7 +78,7 @@ amz_850_components = [
                 id=1,
                 name="reference_identification_qualifier",
                 required=True,
-                reference_tag="reference_identification_qualifier_1",
+                # reference_tag="reference_identification_qualifier_1",
                 options=CodedOptions(
                     values={"CR": "customer_reference_number", "PD": "promotion_number"},
                     exhaustive=False,
@@ -87,7 +87,7 @@ amz_850_components = [
             QualifiedElement(
                 id=2,
                 name="reference_identification",
-                qualifier_tag="reference_identification_qualifier_1",
+                qualifier_tag="reference_identification_qualifier",
                 required=True,
                 options=None,
             ),
@@ -117,7 +117,7 @@ amz_850_components = [
             Element(
                 id=2,
                 name="transportation_terms_qualifier",
-                reference_tag="transportation_terms_qualifier",
+                # reference_tag="transportation_terms_qualifier",
                 options=CodedOptions(
                     values={"01": "incoterms"},
                     exhaustive=False,
@@ -146,7 +146,7 @@ amz_850_components = [
             Element(
                 id=4,
                 name="location_qualifier",
-                reference_tag="location_qualifier",
+                # reference_tag="location_qualifier",
                 options=CodedOptions(values={"OV": "on_vessel"}, exhaustive=False),
             ),
             QualifiedElement(
@@ -231,7 +231,7 @@ amz_850_components = [
                     Element(
                         id=1,
                         name="reference_identification_qualifier",
-                        reference_tag="reference_identification_qualifier",
+                        # reference_tag="reference_identification_qualifier",
                         required=True,
                         options=CodedOptions(values={"L1": "letters_or_notes"}, exhaustive=False),
                     ),
@@ -263,6 +263,10 @@ amz_850_components = [
         name="name_loop",
         required=True,
         max_use=200,
+        nesting=NestingRules(
+            name=Reference(reference_name="entity_identifier_code"),
+            as_list=False,
+        ),
         components=[
             Segment(
                 id="N1",
@@ -276,11 +280,12 @@ amz_850_components = [
                         required=True,
                         options=CodedOptions(values={"ST": "ship_to"}, exhaustive=False),
                     ),
+                    BlankElement(id=2),
                     Element(
-                        id=2,
+                        id=3,
                         name="identification_code_qualifier",
                         required=True,
-                        reference_tag="identification_code_qualifier",
+                        # reference_tag="identification_code_qualifier",
                         options=CodedOptions(
                             values={
                                 "15": "Standard Address Number",
@@ -291,7 +296,7 @@ amz_850_components = [
                         ),
                     ),
                     QualifiedElement(
-                        id=3,
+                        id=4,
                         name="identification_code",
                         qualifier_tag="identification_code_qualifier",
                         required=True,
@@ -305,6 +310,7 @@ amz_850_components = [
         name="line_item_loop",
         required=True,
         max_use=100000,
+        nesting=NestingRules(name="line_items"),
         components=[
             Segment(
                 id="PO1",
@@ -354,7 +360,7 @@ amz_850_components = [
                     Element(
                         id=6,
                         name="product_service_id_qualifier",
-                        reference_tag="product_service_id_qualifier",
+                        # reference_tag="product_service_id_qualifier",
                         required=True,
                         options=CodedOptions(
                             exhaustive=False,

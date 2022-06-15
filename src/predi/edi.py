@@ -493,7 +493,7 @@ class EDI_Decoder(ABC):
 
 
 class X12Decoder(EDI_Decoder):
-    def decode(self, raw_edi: str|Path) -> X12Document:
+    def decode(self, raw_edi: str | Path) -> X12Document:
         edi_doc = X12Document.from_x12(raw_edi)
         return edi_doc
 
