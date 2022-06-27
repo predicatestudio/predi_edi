@@ -18,15 +18,19 @@
           "options": {
             "values": {
               "850": "purchase_order"
-            }
-          }
+            },
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 2,
           "name": "transaction_set_control_number",
-          "required": true
+          "required": true,
+          "_type": "Element"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "BEG",
@@ -41,8 +45,10 @@
             "values": {
               "00": "original"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 2,
@@ -54,23 +60,29 @@
               "NE": "new_order",
               "NP": "new_product_information",
               "RO": "rush_order"
-            }
-          }
+            },
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 3,
           "name": "purchase_order_number",
-          "required": true
+          "required": true,
+          "_type": "Element"
         },
         {
-          "id": 4
+          "id": 4,
+          "_type": "BlankElement"
         },
         {
           "id": 5,
           "name": "date",
-          "required": true
+          "required": true,
+          "_type": "Element"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "REF",
@@ -86,16 +98,20 @@
               "CR": "customer_reference_number",
               "PD": "promotion_number"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 2,
-          "name": "customer_reference_number",
+          "name": "reference_identification",
           "required": true,
-          "qualifier_tag": "reference_identification_qualifier"
+          "qualifier_tag": "reference_identification_qualifier",
+          "_type": "QualifiedElement"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "FOB",
@@ -114,8 +130,10 @@
               "PP": "Prepaid (by Seller)",
               "PS": "Paid by Seller)"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 2,
@@ -124,8 +142,10 @@
             "values": {
               "01": "incoterms"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 3,
@@ -143,9 +163,11 @@
               "FCA": "Free Carrier",
               "FOB": "Free on Board"
             },
-            "exhaustive": false
+            "exhaustive": false,
+            "_type": "CodedOptions"
           },
-          "qualifier_tag": "transportation_terms_qualifier"
+          "qualifier_tag": "transportation_terms_qualifier",
+          "_type": "QualifiedElement"
         },
         {
           "id": 4,
@@ -154,15 +176,19 @@
             "values": {
               "OV": "on_vessel"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 5,
           "name": "location_description",
-          "qualifier_tag": "location_qualifier"
+          "qualifier_tag": "location_qualifier",
+          "_type": "QualifiedElement"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "CSH",
@@ -179,10 +205,13 @@
               "N": "no_back_order",
               "Y": "back_order_if_out_of_stock"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "DTM",
@@ -198,16 +227,20 @@
               "063": "do_not_deliver_after",
               "064": "do_not_deliver_before"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 2,
-          "name": "do_not_deliver_after",
+          "name": "date",
           "required": true,
-          "qualifier_tag": "date_time_qualifier_01"
+          "qualifier_tag": "date_time_qualifier_01",
+          "_type": "QualifiedElement"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "PKG",
@@ -222,8 +255,10 @@
             "values": {
               "F": "free_form"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 2,
@@ -233,15 +268,19 @@
             "values": {
               "CS": "container_shape"
             },
-            "exhaustive": false
-          }
+            "exhaustive": false,
+            "_type": "CodedOptions"
+          },
+          "_type": "Element"
         },
         {
           "id": 5,
           "name": "package_description",
-          "required": true
+          "required": true,
+          "_type": "Element"
         }
-      ]
+      ],
+      "_type": "Segment"
     },
     {
       "id": "N9",
@@ -263,15 +302,19 @@
                 "values": {
                   "L1": "letters_or_notes"
                 },
-                "exhaustive": false
-              }
+                "exhaustive": false,
+                "_type": "CodedOptions"
+              },
+              "_type": "Element"
             },
             {
               "id": 2,
               "name": "reference_identification",
-              "qualifier_tag": "reference_identification_qualifier"
+              "qualifier_tag": "reference_identification_qualifier",
+              "_type": "QualifiedElement"
             }
-          ]
+          ],
+          "_type": "Segment"
         },
         {
           "id": "N9",
@@ -282,11 +325,14 @@
             {
               "id": 1,
               "name": "free_form_message_text",
-              "required": true
+              "required": true,
+              "_type": "Element"
             }
-          ]
+          ],
+          "_type": "Segment"
         }
-      ]
+      ],
+      "_type": "Loop"
     },
     {
       "id": "N1",
@@ -294,9 +340,11 @@
       "required": true,
       "nesting": {
         "name": {
-          "reference_name": "entity_identifier_code"
+          "reference_name": "entity_identifier_code",
+          "_type": "Reference"
         },
-        "as_list": false
+        "as_list": false,
+        "_type": "NestingRules"
       },
       "max_use": 200,
       "components": [
@@ -314,11 +362,14 @@
                 "values": {
                   "ST": "ship_to"
                 },
-                "exhaustive": false
-              }
+                "exhaustive": false,
+                "_type": "CodedOptions"
+              },
+              "_type": "Element"
             },
             {
-              "id": 2
+              "id": 2,
+              "_type": "BlankElement"
             },
             {
               "id": 3,
@@ -330,25 +381,31 @@
                   "92": "Assigned by Buyer or Buyer's Agent",
                   "ZZ": "Mutually Defined"
                 },
-                "exhaustive": false
-              }
+                "exhaustive": false,
+                "_type": "CodedOptions"
+              },
+              "_type": "Element"
             },
             {
               "id": 4,
-              "name": "Standard Address Number",
+              "name": "identification_code",
               "required": true,
-              "qualifier_tag": "identification_code_qualifier"
+              "qualifier_tag": "identification_code_qualifier",
+              "_type": "QualifiedElement"
             }
-          ]
+          ],
+          "_type": "Segment"
         }
-      ]
+      ],
+      "_type": "Loop"
     },
     {
       "id": "PO1",
       "name": "line_item_loop",
       "required": true,
       "nesting": {
-        "name": "line_items"
+        "name": "line_items",
+        "_type": "NestingRules"
       },
       "max_use": 100000,
       "components": [
@@ -361,12 +418,14 @@
             {
               "id": 1,
               "name": "assigned_identification",
-              "required": true
+              "required": true,
+              "_type": "Element"
             },
             {
               "id": 2,
               "name": "quantity_ordered",
-              "required": true
+              "required": true,
+              "_type": "Element"
             },
             {
               "id": 3,
@@ -377,13 +436,16 @@
                   "CA": "cases",
                   "EA": "each"
                 },
-                "exhaustive": false
-              }
+                "exhaustive": false,
+                "_type": "CodedOptions"
+              },
+              "_type": "Element"
             },
             {
               "id": 4,
               "name": "unit_price",
-              "required": true
+              "required": true,
+              "_type": "Element"
             },
             {
               "id": 5,
@@ -394,8 +456,10 @@
                   "PE": "per_each",
                   "RE": "retail_price_per_each"
                 },
-                "exhaustive": false
-              }
+                "exhaustive": false,
+                "_type": "CodedOptions"
+              },
+              "_type": "Element"
             },
             {
               "id": 6,
@@ -411,18 +475,23 @@
                   "UP": "upc_ean_consumer_package_code",
                   "VN": "vendor_item_number"
                 },
-                "exhaustive": false
-              }
+                "exhaustive": false,
+                "_type": "CodedOptions"
+              },
+              "_type": "Element"
             },
             {
               "id": 7,
-              "name": "upc_ean_consumer_package_code",
+              "name": "product_service_id",
               "required": true,
-              "qualifier_tag": "product_service_id_qualifier"
+              "qualifier_tag": "product_service_id_qualifier",
+              "_type": "QualifiedElement"
             }
-          ]
+          ],
+          "_type": "Segment"
         }
-      ]
+      ],
+      "_type": "Loop"
     },
     {
       "id": "CTT",
@@ -439,16 +508,20 @@
             {
               "id": 1,
               "name": "number_of_line_items",
-              "required": true
+              "required": true,
+              "_type": "Element"
             },
             {
               "id": 2,
               "name": "hash_total",
-              "required": true
+              "required": true,
+              "_type": "Element"
             }
-          ]
+          ],
+          "_type": "Segment"
         }
-      ]
+      ],
+      "_type": "Loop"
     },
     {
       "id": "SE",
@@ -459,14 +532,17 @@
         {
           "id": 1,
           "name": "number_of_included_segments",
-          "required": true
+          "required": true,
+          "_type": "Element"
         },
         {
           "id": 2,
           "name": "transaction_set_control_number",
-          "required": true
+          "required": true,
+          "_type": "Element"
         }
-      ]
+      ],
+      "_type": "Segment"
     }
   ]
 }

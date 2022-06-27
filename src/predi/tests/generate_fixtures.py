@@ -3,13 +3,15 @@ from predi.core import dump, load
 
 from . import FIXTURE_DIR, SAMPLE_DIR
 
+SAMPLE_TRANSACTIONS = SAMPLE_DIR / "transactions"
+
 
 def main():
     write_loaded_fixtures()
 
 
 def write_loaded_fixtures():
-    for standard_dir in SAMPLE_DIR.iterdir():
+    for standard_dir in SAMPLE_TRANSACTIONS.iterdir():
         s_standard = edi.Standards[standard_dir.stem].value
         for trans_dir in standard_dir.iterdir():
             for edi_file in trans_dir.iterdir():

@@ -66,14 +66,5 @@ cli.add_command(generate_fixtures_cli)
 cli.add_command(system_group)
 main = cli
 
-
-@click.command("trans")
-def transaction_cli():
-    transactions.main()
-
-
-cli.add_command(transaction_cli)
-
-
 if __name__ == "__main__":
     main()

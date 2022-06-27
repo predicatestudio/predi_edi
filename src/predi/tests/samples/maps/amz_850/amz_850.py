@@ -1,8 +1,6 @@
 from datetime import date
 
-from predi.transactions.mapping.x12 import BlankElement, CodedOptions, Element, Loop, NestingRules, QualifiedElement, Reference, Segment
-
-from predi.transactions.mapping import X12BasePredimaps
+from predi.transactions.mapping.x12 import BlankElement, CodedOptions, Element, Loop, NestingRules, QualifiedElement, Reference, Segment, X12PrediMap
 
 
 class AmazonSpec:
@@ -78,7 +76,6 @@ amz_850_components = [
                 id=1,
                 name="reference_identification_qualifier",
                 required=True,
-                # reference_tag="reference_identification_qualifier_1",
                 options=CodedOptions(
                     values={"CR": "customer_reference_number", "PD": "promotion_number"},
                     exhaustive=False,
@@ -436,7 +433,7 @@ amz_850_components = [
     ),
 ]
 
-amazon850map = X12BasePredimaps.X12_850.value(
+amz850_map = X12PrediMap(
     author="amazon",
     title="amz_850",
     version="4010",

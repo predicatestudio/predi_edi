@@ -26,60 +26,44 @@ PrEDI is designed primary to be used as a python library and is modeled after th
 
 #### Quickstart
 
-parsing is simple
+Parsing an x12 document requires two documents:
+
+1. The Mapping (in the form of a python or json file)
+2. The EDI document (an x12 document)
+
+Once you have these two, you can begin parsing. First, import your mapping and load an X12_Mapper object from it.
 
 ```python
-In [1]: from predi.core import load # loads can also be used for strings
+# From a json file
+from pathlib import Path
+from predi.transactions import load_mapping
+mapping_file = Path(./path/to/mapping.json)
+a_mapping = load_mapping(mapping_file)
 
-In [2]: from pathlib import Path
+# Or import directly from a python file
 
-In [3]: fp = Path("./example.edi")
+from my_mappings import a_mapping
 
-In [4]: doc = load(fp.open("r"))
-WARNING:root:Guessing EDI standard. guess: x12
-
-In [5]: # This returns an EDI_Document object, a subclass of list
-
-In [6]: print(doc)
-[[['ISA', ... '000069737']]]
+# Generate a Mapper
+from predi.transactions import X12_Mapper
+mapper = X12_Mapper(a_mapping)
 ```
 
-so is encoding
+Once you have an X12_Mapper object you can parse an x12 transaction.
 
 ```python
-In [7]: from predi.core import dump, dumps
+from predi.api import load
 
-In [8]: from predi.edi import get_standard
+x12_file = Path(./path/to/x12.edi)
+order = mapper.parser_data(load(x12_file.open()))
+```
 
-In [9]: j_encoder = get_standard("json").encoder
+Mapping files are best created in python, then exported to json for sharing or storage.
+They are built on pydantic Models, so they can be exported by calling the .json() method with any argument that might be passed to a pydantic Model. Reccomended kwargs include indent=2 and exclude_defaults=True for readable and condensed files, respectively.
 
-In [12]: # EDI_Encoder objects can be passed to load(s) and dump(s) to ensure accurate encoding and decoding
-
-In [11]: with Path("./edixample.json").open("w") as f:
-    ...:     dump(doc, f, encoder=j_encoder)
-
-In [12]: # dump to a file, nearly identical to builtin json lib
-
-In [13]: print(dumps(doc, encoder=j_encoder))
-{
-  "x12_delimiters": [
-    "*",
-    ">",
-    "~"
-  ],
-  "x12": [
-    [
-      [
-        "ISA",
-        "00",
-        ...
-      ],
-        ...
-    ]
-  ]
-}
-
-In [15]: # or dumps to a string.
+```python
+save_file = Path("path/to/my/saved/mapping.json")
+save_file.write_text(a_mapping.json(indent=2, exclude_defaults=True))
 ```
 
 ### CLI

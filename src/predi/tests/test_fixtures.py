@@ -3,10 +3,11 @@ from ..core import load
 from . import FIXTURE_DIR, SAMPLE_DIR, TEST_DIR
 
 x12_850 = TEST_DIR / "samples/x12/850/sample_amz_850.edi"
+SAMPLE_TRANSACTIONS = SAMPLE_DIR / "transactions"
 
 
 def test_load_and_dump():
-    for standard_dir in SAMPLE_DIR.iterdir():
+    for standard_dir in SAMPLE_TRANSACTIONS.iterdir():
         s_standard = edi.Standards[standard_dir.stem].value
         for trans_dir in standard_dir.iterdir():
             for edi_file in trans_dir.iterdir():
@@ -27,15 +28,3 @@ def test_load_and_dump():
                                     print(s_standard.name)
                                     print(f_standard.name)
                                     raise e
-
-
-# class TestEDIDecoder:
-
-#     def test_stability(self):
-#         testpath = Path("/home/benjamin/predicatestudio/predi/src/predi/tests/samples/x12/850/sample_targetds_850.edi")
-#         data = load(testpath.open())
-
-#         with testpath.open("r") as fp:
-#             pdata = data.as_x12()
-#             rdata = fp.read()
-# assert pdata == rdata

@@ -1,14 +1,47 @@
+import functools
+import json
 import logging
+from abc import abstractclassmethod
 from datetime import date
 from enum import Enum
-from typing import Optional
 
 from predi.edi import X12Document
-from predi.utils import PrediBaseModel
+from predi.utils import PrediBaseModel, get_nested_subclasses
 from pydantic import PositiveInt, validator
 
 
-class X12Field(PrediBaseModel):
+class X12MapDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, obj):
+        _type = obj.get("_type")
+        if _type is None:
+            print("I'm None!")
+            return obj
+
+        del obj["_type"]  # Delete the `_type` key as it isn't used in the models
+
+        class_map = get_nested_subclasses(X12BaseModel)  # Create a look-up object to avoid an if-else chain
+        return class_map[_type].parse_obj(obj)
+
+
+class X12BaseModel(PrediBaseModel):
+    """A Model class to be used by all sub-models used in an x12 transaction"""
+
+    class Config:
+        json_loads: functools.partial(json.loads, cls=X12MapDecoder)
+
+    def dict(self, *, include_type=True, **kwargs):
+        super_dict = super().dict(**kwargs)
+        if include_type:
+            super_dict["_type"] = type(self).__name__
+        return super_dict
+
+
+class X12Field(X12BaseModel):
+    """An x12 feature that isn't a component."""
+
     ...
 
 
@@ -59,6 +92,13 @@ class CodedOptions(Options):
 
 
 class Reference(X12Field):
+    """A pointer to another element to dynamically select keys.
+
+    Arguments:
+    reference_name -- A key who's value will replace this element's key
+    delete_on_use -- A flag to delete the reference
+    """
+
     reference_name: str
     delete_on_use: bool = True
 
@@ -71,16 +111,35 @@ class Reference(X12Field):
 
 
 class NestingRules(X12Field):
+    """A set of rules to nest data during parsing
+
+    Argumens:
+    name -- A string or Reference object to serve as the key to the nested data.
+            None will default to this element's name.
+    as_list -- A flag to allow multiple values to be stored as a list."""
+
     name: str | Reference = None
     as_list: bool = True
 
 
-class X12Component(PrediBaseModel):
+class X12Component(X12BaseModel):
+    """The core features of an x12 transaction. Namely, segments, elements, and loops."""
+
     id: str | int
-    name: Optional[str] = None
+    name: str | None = None
     required: bool = False
-    # reference_tag: Optional[str] = None
     nesting: NestingRules = None
+
+    class Config:
+        json_encoders = {
+            "X12BaseModel": lambda obj: dict(_type=type(obj).__name__, **obj.dict(exclude_defaults=True)),
+            "Segment": lambda obj: dict(_type=type(obj).__name__, **obj.dict(exclude_defaults=True)),
+            "Element": lambda obj: dict(_type=type(obj).__name__, **obj.dict(exclude_defaults=True)),
+            list: lambda obj: list(
+                dict(_type=type(elem).__name__, **elem.dict(exclude_defaults=True)) for elem in obj if isinstance(obj, X12BaseModel)
+            ),
+        }
+        json_loads: functools.partial(json.loads, cls=X12MapDecoder)
 
     def nest_data(self, component_data, extracted_data):
         """Takes parsed edi data from this component and the data that has already been extracted from the superior loop or transaction.
@@ -100,15 +159,17 @@ class X12Component(PrediBaseModel):
             extracted_data[name] = component_data
         return extracted_data
 
-    def parse(self, edi_data):
-        raise NotImplementedError
+    @abstractclassmethod
+    def parse_data(self, edi_data):
+        """Removes an instance of this component from the edi_data and returns the parsed data a remaining edi_data"""
+        ...
 
 
 class Element(X12Component):
     id: int
-    options: Optional[Options] = None
+    options: Options | None = None
 
-    def parse(self, edi_data):
+    def parse_data(self, edi_data):
         # print(self)
         if self.options:
             edi_data = self.options.validate_options(edi_data)
@@ -127,7 +188,7 @@ class BlankElement(Element):
 
     error_on_value: bool = False
 
-    def parse(self, edi_data):
+    def parse_data(self, edi_data):
         if edi_data:
             if self.error_on_value:
                 raise Exception("I'm supposed to be blank")
@@ -138,10 +199,20 @@ class BlankElement(Element):
 
 class Segment(X12Component):
     id: str
-    max_use: Optional[PositiveInt]
+    max_use: PositiveInt | None
     elements: list[Element]
 
-    def parse(self, edi_data):
+    class Config:
+        json_encoders = {
+            "X12BaseModel": lambda obj: dict(_type=type(obj).__name__, **obj.dict(exclude_defaults=True)),
+            "Segment": lambda obj: dict(_type=type(obj).__name__, **obj.dict(exclude_defaults=True)),
+            "Element": lambda obj: dict(_type=type(obj).__name__, **obj.dict(exclude_defaults=True)),
+            list: lambda obj: list(
+                dict(_type=type(elem).__name__, **elem.dict(exclude_defaults=True)) for elem in obj if isinstance(obj, X12BaseModel)
+            ),
+        }
+
+    def parse_data(self, edi_data):
         mapping = {}
         edi_segment_data = edi_data.pop(0)
         if not self.id.lower() == edi_segment_data[0].lower():
@@ -150,34 +221,25 @@ class Segment(X12Component):
             if isinstance(map_element, QualifiedElement):
                 qualified_name = mapping.pop(map_element.qualifier_tag)
                 map_element.qualify_name(qualified_name=qualified_name)
-            el_mapping = map_element.parse(data_element)
+            el_mapping = map_element.parse_data(data_element)
             mapping.update(el_mapping)
 
-        #     el_map_name, el_map_value = map_element.parse(data_element)
-        #     if isinstance(map_element, BlankElement):
-        #         continue
-        #     elif isinstance(map_element, QualifiedElement):
-        #         el_map_name = mapping.pop(map_element.qualifier_tag)
-
-        #     mapping[el_map_name] = el_map_value
-        # print(mapping)
         return mapping, edi_data
 
 
 class Loop(X12Component):
     id: str
-    max_use: Optional[PositiveInt]
+    max_use: PositiveInt | None
     components: list[Segment, "Loop"]
 
-    def parse(self, edi_data):
-        # raise NotImplementedError
+    def parse_data(self, edi_data):
         loop_data = {}
         for component in self.components:
             component_usages = 0
             while not component_usages == component.max_use:
                 if component.id == edi_data[0][0]:
                     # print(current_segment[1:])
-                    component_data, edi_data = component.parse(edi_data)
+                    component_data, edi_data = component.parse_data(edi_data)
                     loop_data.update(component_data)
                     component_usages += 1
                 else:
@@ -186,13 +248,13 @@ class Loop(X12Component):
         return loop_data, edi_data
 
 
-class X12PrediMap(PrediBaseModel):
+class X12PrediMap(X12BaseModel):
     author: str
     title: str
     version: str
-    version_date: Optional[date]
+    version_date: date | None
     predimap_version: str
-    components: list[Segment | Loop]
+    components: list[X12Component]
 
 
 class X12_850(X12PrediMap):
@@ -209,7 +271,8 @@ class X12_Mapper:
     def __init__(self, map: X12PrediMap = None):
         self.map = map
 
-    def parse(self, x12_document: X12Document, map=None):
+    def parse_data(self, x12_document: X12Document, map=None):
+        # These two are not currently implemented, but should be utilized in the future
         interchange_envelope = [x12_document[0][0], x12_document[0][-1]]
         functional_group = [x12_document[0][1][0][0], x12_document[0][1][0][-1]]
         transaction_sets = x12_document[0][1][0][1]
@@ -218,13 +281,11 @@ class X12_Mapper:
 
         map = map if map else self.map
         for transaction in transaction_sets:
-            # print(current_segment)
             for component in map.components:
                 component_usages = 0
                 while not component_usages == component.max_use:
                     if component.id == transaction[0][0]:
-                        # print(current_segment[1:])
-                        component_data, transaction = component.parse(transaction)
+                        component_data, transaction = component.parse_data(transaction)
                         if component.nesting:
                             transaction_data = component.nest_data(component_data, transaction_data)
                         else:
@@ -232,12 +293,6 @@ class X12_Mapper:
                         component_usages += 1
                     else:
                         break
-        return transaction_data
-
-        # print(type(x12_document[0][1][0][1]))
-        # return transaction_sets
-        # return (self.map.components)
-
-
-# print(X12_850.__fields__["title"].default)
-# print({val.__fields__["title"].default: val for val in X12PrediMap.__subclasses__()})
+            transactions.append(transaction_data)
+            transaction_data = {}
+        return transactions
