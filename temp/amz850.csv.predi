@@ -1,0 +1,2 @@
+H, trans_set_id, customer_ref_num, order_type, po_num, po_date, ship_to ,no_deliver_after, no_deliver_before, sale_req_code, seg_count, trans_set_ctrl_num, trans_set_purpose_code, transaction_totals
+item_data, assigned_id, order_quant, unit_price, unit_price_basis_code, uom, upc_ean_consumer_pack_code

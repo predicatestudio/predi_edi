@@ -1,0 +1,2 @@
+echo "    Testing Enabled:"
+$APPNAME system selftest

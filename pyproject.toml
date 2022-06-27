@@ -1,0 +1,72 @@
+[project]
+  name = "predi"
+  version = "0.1.0"
+  description = "A template for BEM projects"
+  readme = "README.md"
+  requires-python = ">=3.10"
+  license = { file = "LICENSE" }
+  authors = [
+    { name = "Terminal Labs" },
+    { email = "solutions@terminallabs.com" },
+  ]
+  maintainers = [
+    { name = "Terminal Labs" },
+    { email = "solutions@terminallabs.com" },
+  ]
+  # pins and reqs
+  dependencies = [
+    "click",
+    "tomlkit",
+    "pytest",
+    "pytest-cov",
+    "pyyaml",
+    "pydantic",
+
+    # examples:
+    # "req-win-pack >= 3.1.0; sys_platform == 'win32'",
+    # 'some-pkg @ git+ssh://git@github.com/someorgname/pkg-repo-name@v1.1#egg=some-pkg',
+  ]
+
+  # extras
+  [project.optional-dependencies]
+    test = ["pytest", "pytest-cov"]
+    lint = ["black", "radon", "flake8", "mypy"]
+    ci   = ["predi[test]", "predi[lint]"]
+    dev  = ["predi[ci]", "ipython"]
+
+  [project.urls]
+    homepage      = "example.com"
+    documentation = "readthedocs.org"
+    repository    = "https://github.com/predicatestudio/predicate_templates"
+    changelog     = "github.com/me/spam/blob/master/CHANGELOG.md"
+
+  [project.scripts]
+    predi = "predi.cli:main"
+
+[build-system]
+  requires      = ["toml", "setuptools", "wheel"]
+  build-backend = "setuptools.build_meta"
+
+[tool]
+  [tool.black]
+    line-length    = 150
+    target-version = ['py310']
+
+
+  [tool.bem]
+    source-directory = "src"
+    pins             = ["click > 6"]
+
+    # [tool.bem.codepack]
+    # framework = "https://github.com/terminal-labs/bash-environment-shelf/archive/refs/heads/master.zip"
+
+  [tool.pytest.ini_options]
+    addopts   = "-x -v"
+    testpaths = ["src/predi/tests"]
+[tool.mypy]
+  pretty              = true
+  python_version      = "3.10"
+  warn_unused_configs = true
+  files               = "./src"
+[tool.pytest.pytest-cov]
+  cov-config = ".coveragerc"
