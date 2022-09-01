@@ -4,7 +4,7 @@ PrEDI EDI is an open standard for EDI created for use in the Predicate Studio su
 
 ## Why a new EDI Standard?
 
-x12 is proprietary, and EDIFACT, while much better, is still file-based. EDI is not so unique a field that it aught to require its own base technologies, simply new implementations. Thus, PrEDI.
+x12 is proprietary, and EDIFACT, while much better, is still file-based. EDI is not so unique a field that it ought to require its own base technologies, simply new implementations. Thus, PrEDI.
 
 ## What is PrEDI?
 
